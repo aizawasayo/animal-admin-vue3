@@ -1,0 +1,32 @@
+{
+  "name": "animal-admin-vue3",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "element-plus": "^1.1.0-beta.8",
+    "js-cookie": "^3.0.0",
+    "mockjs": "^1.1.0",
+    "nprogress": "^0.2.0",
+    "path-browserify": "^1.0.1",
+    "screenfull": "^5.1.0",
+    "vue": "^3.2.6",
+    "vue-router": "^4.0.11",
+    "vuex": "^4.0.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^1.6.0",
+    "@vitejs/plugin-vue-jsx": "^1.1.7",
+    "@vue/compiler-sfc": "^3.0.5",
+    "babel-plugin-import": "^1.13.3",
+    "cross-env": "^7.0.3",
+    "sass": "^1.38.1",
+    "vite": "^2.5.1",
+    "vite-plugin-mock": "^2.9.6",
+    "vite-plugin-svg-icons": "^1.0.4"
+  }
+}

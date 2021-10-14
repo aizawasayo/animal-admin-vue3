@@ -4,27 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('board', this)"
-              >添加</el-button
-            >
+            <el-button type="primary" @click="openAddDialog">添加</el-button>
           </el-col>
         </el-row>
       </el-col>
@@ -40,16 +23,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -117,17 +95,17 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newBoardRef"
+        ref="boardFormRef"
         :inline="false"
-        :model="newBoard"
-        :rules="newBoardRules"
+        :model="boardFormData"
+        :rules="boardFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="8">
             <el-form-item label="话题" prop="topic">
               <el-select
-                v-model="newBoard.topic"
+                v-model="boardFormData.topic"
                 collapse-tags
                 placeholder="请选择话题"
               >
@@ -142,18 +120,20 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
-              <upload-multi
-                ref="upload"
-                drag
-                :list="newBoard.photoSrc"
-                dialog-width="50%"
-              />
+              <template #default>
+                <upload-multi
+                  ref="uploadRef"
+                  drag
+                  :list="boardFormData.photoSrc"
+                  dialog-width="50%"
+                />
+              </template>
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item prop="content">
               <el-input
-                v-model="newBoard.content"
+                v-model="boardFormData.content"
                 type="textarea"
                 placeholder="把你想分享的说出来吧"
               />
@@ -161,106 +141,108 @@
           </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postBoard">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="handlePost(true, beforePostProcess)"
+            >确 定</el-button
+          >
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { defineComponent, ref, reactive, onMounted, computed } from 'vue'
+import { useStore } from 'vuex'
 import { getBoardList, addBoard, getBoard, deleteBoard } from '@api/board'
 import { getOptionList } from '@api/option'
 import getOption from '@utils/get-option'
+import useMix from '@composables/useMix'
 
-export default {
+export default defineComponent({
   name: 'Board',
-  data() {
-    return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      topicList: [],
-      topicOption: [],
-      newBoard: {
-        user: '',
-        topic: '',
-        content: '',
-        photoSrc: [],
-        icon: '',
-        color: '',
-      },
-      newBoardRules: {
-        topic: [{ required: true, message: '请选择话题', trigger: 'change' }],
-        content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
-      },
-      multipleSelection: [],
+  inject: ['apiUrl'],
+  setup() {
+    const store = useStore()
+
+    const boardFormRef = ref(null)
+    const boardFormData = reactive({
+      user: '',
+      topic: '',
+      content: '',
+      photoSrc: [],
+      icon: '',
+      color: '',
+    })
+
+    const apiOption = {
+      getListApi: getBoardList,
+      getInfoApi: getBoard,
+      deleteApi: deleteBoard,
+      addApi: addBoard,
     }
-  },
-  computed: {
-    ...mapGetters(['userId', 'roles']),
-  },
-  created() {
-    this.fetchData()
-    this.getOptions()
-  },
-  methods: {
-    fetchData(param) {
-      if (this.roles.length === 1 && this.roles.includes('normal')) {
-        this.queryInfo.user = this.userId
-      }
-      this.commonApi.getList(param, getBoardList, this)
-    },
-    getOptions() {
+    const uploadRef = ref(null)
+    const mixProps = useMix(apiOption, boardFormRef, boardFormData, uploadRef)
+
+    const topicList = ref([])
+    const topicOption = ref([])
+    const getOptions = () => {
       getOption('topic', list => {
-        this.topicList = list
+        topicList.value = list
       })
       getOptionList({ type: 'topic' })
         .then(response => {
-          this.topicOption = response.data
+          topicOption.value = response.data
         })
-        .catch(err => this.$message.error(err.message))
-    },
-    postBoard() {
-      this.addTopicInfo()
-      this.newBoard.user = this.$store.getters.userId
-      this.commonApi.postUploadForm('board', addBoard, this)
-    },
-    handleEdit(id) {
-      this.commonApi.openEditForm(id, 'board', getBoard, this)
-    },
-    addTopicInfo() {
-      const topicName = this.newBoard.topic
-      const topicInfo = this.topicOption.filter(item => item.name === topicName)
-      this.newBoard.icon = topicInfo[0].icon
-      this.newBoard.color = topicInfo[0].color
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteBoard, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteBoard,
-        this.fetchData
+        .catch(err => $message.error(err.message))
+    }
+
+    const userId = computed(() => store.getters.userId)
+    const roles = computed(() => store.getters.roles)
+
+    onMounted(() => {
+      getOptions()
+      if (roles.value.length === 1 && roles.value.includes('normal')) {
+        mixProps.listQuery.user = userId
+      }
+    })
+
+    const addTopicInfo = () => {
+      const topicName = boardFormData.topic
+      const topicInfo = topicOption.value.filter(
+        item => item.name === topicName
       )
-    },
+      boardFormData.icon = topicInfo[0].icon
+      boardFormData.color = topicInfo[0].color
+    }
+
+    const beforePostProcess = formData => {
+      addTopicInfo()
+      formData.user = userId.value
+    }
+
+    return {
+      ...mixProps,
+      boardFormRef,
+      boardFormData,
+      boardFormRules: {
+        topic: [{ required: true, message: '请选择话题', trigger: 'change' }],
+        content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
+      },
+      uploadRef,
+      topicList,
+      beforePostProcess,
+    }
   },
-}
+})
 </script>
 
 <style scoped>
+.el-date-editor {
+  width: 100% !important;
+}
 .el-date-editor.el-input,
 .el-date-editor.el-input__inner {
   width: 100%;

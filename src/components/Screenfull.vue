@@ -8,47 +8,48 @@
 </template>
 
 <script>
+import { defineComponent, ref, onMounted, onBeforeUnmount } from 'vue'
 import screenfull from 'screenfull'
+import { ElMessage } from 'element-plus'
 
-export default {
+export default defineComponent({
   name: 'Screenfull',
-  data() {
-    return {
-      isFullscreen: false,
-    }
-  },
-  mounted() {
-    this.init()
-  },
-  beforeUnmount() {
-    this.destroy()
-  },
-  methods: {
-    click() {
+  setup() {
+    const isFullscreen = ref(false)
+
+    const click = () => {
       if (!screenfull.isEnabled) {
-        this.$message({
+        ElMessage({
           message: '您的浏览器不能执行全屏操作',
           type: 'warning',
         })
         return false
       }
       screenfull.toggle()
-    },
-    change() {
-      this.isFullscreen = screenfull.isFullscreen
-    },
-    init() {
+    }
+    const change = () => {
+      isFullscreen.value = screenfull.isFullscreen
+    }
+    const init = () => {
       if (screenfull.isEnabled) {
-        screenfull.on('change', this.change)
+        screenfull.on('change', change)
       }
-    },
-    destroy() {
+    }
+    const destroy = () => {
       if (screenfull.isEnabled) {
-        screenfull.off('change', this.change)
+        screenfull.off('change', change)
       }
-    },
+    }
+
+    onMounted(init)
+    onBeforeUnmount(destroy)
+
+    return {
+      isFullscreen,
+      click,
+    }
   },
-}
+})
 </script>
 
 <style scoped>

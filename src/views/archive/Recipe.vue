@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入DIY配方关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="DIY配方" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('recipe', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加DIY配方</el-button
             >
           </el-col>
@@ -40,16 +25,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -166,7 +146,7 @@
             type="primary"
             icon="el-icon-edit"
             size="small"
-            @click="handleEdit(scope.row._id)"
+            @click="handleEdit(scope.row._id, openEditCallback)"
           ></el-button>
           <el-button
             type="danger"
@@ -191,32 +171,32 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newRecipeRef"
+        ref="recipeFormRef"
         :inline="false"
-        :model="newRecipe"
-        :rules="newRecipeRules"
+        :model="recipeFormData"
+        :rules="recipeFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="8">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="newRecipe.name" />
+              <el-input v-model="recipeFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="英文名" prop="engName">
-              <el-input v-model="newRecipe.engName" />
+              <el-input v-model="recipeFormData.engName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newRecipe.jpnName" />
+              <el-input v-model="recipeFormData.jpnName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="种类" prop="type">
               <el-select
-                v-model="newRecipe.type"
+                v-model="recipeFormData.type"
                 multiple
                 collapse-tags
                 placeholder="请选择种类"
@@ -234,7 +214,7 @@
           <el-col :span="8">
             <el-form-item label="来源(多选)" prop="channels">
               <el-select
-                v-model="newRecipe.channels"
+                v-model="recipeFormData.channels"
                 multiple
                 collapse-tags
                 placeholder="请选择获取途径"
@@ -250,7 +230,10 @@
           </el-col>
           <el-col v-show="isNpc" :span="8">
             <el-form-item label="NPC" prop="npc">
-              <el-select v-model="newRecipe.npc" placeholder="请选择来源npc">
+              <el-select
+                v-model="recipeFormData.npc"
+                placeholder="请选择来源npc"
+              >
                 <el-option
                   v-for="item in npcList"
                   :label="item.text"
@@ -263,7 +246,7 @@
           <el-col v-show="isIslander" :span="8">
             <el-form-item label="岛民性格" prop="character">
               <el-select
-                v-model="newRecipe.character"
+                v-model="recipeFormData.character"
                 placeholder="请选择来源岛民性格"
               >
                 <el-option
@@ -278,7 +261,7 @@
           <el-col :span="8">
             <el-form-item label="季节限定" prop="season">
               <el-select
-                v-model="newRecipe.season"
+                v-model="recipeFormData.season"
                 placeholder="请选择出现季节"
               >
                 <el-option
@@ -293,7 +276,7 @@
           <el-col :span="8">
             <el-form-item label="所属活动" prop="activity">
               <el-select
-                v-model="newRecipe.activity"
+                v-model="recipeFormData.activity"
                 placeholder="请选择所属活动"
               >
                 <el-option
@@ -307,7 +290,10 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="占地面积" prop="size">
-              <el-select v-model="newRecipe.size" placeholder="请选择占地面积">
+              <el-select
+                v-model="recipeFormData.size"
+                placeholder="请选择占地面积"
+              >
                 <el-option
                   v-for="item in sizeList"
                   :label="item.text"
@@ -320,7 +306,7 @@
           <el-col :span="8">
             <el-form-item label="解锁要求" prop="unlockCondition">
               <el-select
-                v-model="newRecipe.unlockCondition"
+                v-model="recipeFormData.unlockCondition"
                 placeholder="请选择解锁条件"
               >
                 <el-option
@@ -338,11 +324,11 @@
             <el-form-item label="合成配方" prop="materials" label-width="80px">
             </el-form-item>
           </el-col>
-          <el-col v-for="(item, i) in newRecipe.materials" :span="10">
+          <el-col v-for="(item, i) in recipeFormData.materials" :span="10">
             <el-form-item :label="'材料' + (i + 1)" prop="" label-width="80px">
               <el-col :span="12">
                 <el-select
-                  v-model="newRecipe.materials[i]"
+                  v-model="recipeFormData.materials[i]"
                   :remote-method="getMaterialList"
                   filterable
                   default-first-option
@@ -379,7 +365,7 @@
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
               <upload-single
-                v-model="newRecipe.photoSrc"
+                v-model="recipeFormData.photoSrc"
                 dialog-width="30%"
                 drag
               />
@@ -388,7 +374,7 @@
           <el-col :span="24">
             <el-form-item label="途径说明" prop="channelDetail">
               <el-input
-                v-model="newRecipe.channelDetail"
+                v-model="recipeFormData.channelDetail"
                 type="textarea"
                 placeholder="请输入具体途径说明"
               />
@@ -396,15 +382,22 @@
           </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postRecipe">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button
+            type="primary"
+            @click="handlePost(false, beforePostProcess)"
+            >确 定</el-button
+          >
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { defineComponent, ref, reactive, computed, onMounted } from 'vue'
 import {
   getRecipes,
   addRecipe,
@@ -416,50 +409,134 @@ import { searchMaterial } from '@api/material'
 import { searchFurniture } from '@api/furniture'
 import { searchClothing } from '@api/clothing'
 import getOption from '@utils/get-option'
-import { nextTick } from 'vue'
+import useMix from '@composables/useMix'
 
-export default {
+export default defineComponent({
   name: 'Recipe',
-  data() {
+  inject: ['apiUrl'],
+  setup() {
+    const recipeFormRef = ref(null)
+    const recipeFormData = reactive({
+      name: '',
+      engName: '',
+      jpnName: '',
+      type: '',
+      activity: '',
+      npc: '',
+      season: '',
+      character: '',
+      materials: [
+        { photoSrc: '', num: 1, name: '' },
+        { photoSrc: '', num: 1, name: '' },
+        { photoSrc: '', num: 1, name: '' },
+      ],
+      size: '',
+      channels: [],
+      channelDetail: '',
+      unlockCondition: null,
+      photoSrc: '',
+    })
+
+    const apiOption = {
+      getListApi: getRecipes,
+      getInfoApi: getRecipe,
+      deleteApi: deleteRecipe,
+      addApi: addRecipe,
+    }
+    const mixProps = useMix(apiOption, recipeFormRef, recipeFormData)
+
+    const materialList = ref([])
+    const sizeList = ref([])
+    const typeList = ref([])
+    const activityList = ref([])
+    const seasonList = ref([])
+    const characterList = ref([])
+    const channelList = ref([])
+
+    const getOptions = () => {
+      getOption('diyType', list => {
+        typeList.value = list
+      })
+      getOption('diyChannels', list => {
+        channelList.value = list
+      })
+      getOption('size', list => {
+        sizeList.value = list
+      })
+
+      getOption('season', list => {
+        seasonList.value = list
+      })
+      getOption('character', list => {
+        characterList.value = list
+      })
+      getOption('activity', list => {
+        activityList.value = list
+      })
+    }
+
+    onMounted(getOptions)
+
+    const getMaterialList = async query => {
+      if (!query.trim()) return
+      const resMaterial = await searchMaterial(query)
+      if (resMaterial.data.length === 0) {
+        const resFurniture = await searchFurniture(query)
+        if (resFurniture.data.length === 0) {
+          const resClothing = await searchClothing(query)
+          if (resClothing.data.length === 0) {
+            const resRecipe = await searchRecipe(query)
+            if (resRecipe.data.length === 0) return
+            materialList.value = resRecipe.data.map(w => {
+              return { name: w.name, _id: w._id, photoSrc: w.photoSrc, num: 1 }
+            })
+          } else {
+            materialList.value = resClothing.data.map(w => {
+              return { name: w.name, _id: w._id, photoSrc: w.photoSrc, num: 1 }
+            })
+          }
+        } else {
+          materialList.value = resFurniture.data.map(w => {
+            return { name: w.name, _id: w._id, photoSrc: w.photoSrc, num: 1 }
+          })
+        }
+      } else {
+        materialList.value = resMaterial.data.map(w => {
+          return { name: w.name, _id: w._id, photoSrc: w.photoSrc, num: 1 }
+        })
+      }
+    }
+    const clearMaterialList = () => {
+      materialList.value = []
+    }
+    const addMaterials = () => {
+      recipeFormData.materials.push({ photoSrc: '', num: 1, name: '' })
+    }
+
+    const openEditCallback = () => {
+      materialList.value = recipeFormData.materials
+    }
+    const beforePostProcess = formData => {
+      formData.materials = formData.materials.filter(m => m.name !== '')
+    }
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newRecipe: {
-        name: '',
-        engName: '',
-        jpnName: '',
-        type: '',
-        activity: '',
-        npc: '',
-        season: '',
-        character: '',
-        materials: [
-          { photoSrc: '', num: 1, name: '' },
-          { photoSrc: '', num: 1, name: '' },
-          { photoSrc: '', num: 1, name: '' },
+      ...mixProps,
+      recipeFormRef,
+      recipeFormData,
+      recipeFormRules: {
+        name: [
+          { required: true, message: '请输入配方名', trigger: 'blur' },
+          { min: 1, max: 8, message: '长度在 1 到 8 个字符', trigger: 'blur' },
         ],
-        size: '',
-        channels: [],
-        channelDetail: '',
-        unlockCondition: null,
-        photoSrc: '',
       },
-      materialList: [],
-      sizeList: [],
-      typeList: [],
-      activityList: [],
-      seasonList: [],
-      characterList: [],
+      materialList,
+      sizeList,
+      typeList,
+      activityList,
+      seasonList,
+      characterList,
+      channelList,
       npcList: [
         { text: '狸克', value: '狸克' },
         { text: '西施惠', value: '西施惠' },
@@ -471,133 +548,30 @@ export default {
         { text: '健兆', value: '健兆' },
         { text: '阿獭', value: '阿獭' },
       ],
-      channelList: [],
       unlockConditionList: [
         { text: '无', value: '' },
         { text: '总DIY数量满50次', value: '50' },
         { text: '总DIY数量满100次', value: '100' },
         { text: '总DIY数量满200次', value: '200' },
       ],
-      newRecipeRules: {
-        name: [
-          { required: true, message: '请输入配方名', trigger: 'blur' },
-          { min: 1, max: 8, message: '长度在 1 到 8 个字符', trigger: 'blur' },
-        ],
-      },
-      multipleSelection: [],
+      isNpc: computed(() => recipeFormData.channels.includes('NPC')),
+      isIslander: computed(() => recipeFormData.channels.includes('岛民')),
+      getMaterialList,
+      clearMaterialList,
+      addMaterials,
+      openEditCallback,
+      beforePostProcess,
     }
   },
-  computed: {
-    isNpc() {
-      return this.newRecipe.channels.includes('NPC')
-    },
-    isIslander() {
-      return this.newRecipe.channels.includes('岛民')
-    },
-  },
-  created() {
-    this.fetchData()
-    this.getOptions()
-  },
   methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getRecipes, this)
-    },
-    getOptions() {
-      getOption('diyType', list => {
-        this.typeList = list
-      })
-      getOption('diyChannels', list => {
-        this.channelList = list
-      })
-      getOption('size', list => {
-        this.sizeList = list
-      })
-      getOption('diyUnlock', list => {})
-      getOption('season', list => {
-        this.seasonList = list
-      })
-      getOption('character', list => {
-        this.characterList = list
-      })
-      getOption('activity', list => {
-        this.activityList = list
-      })
-    },
-    async getMaterialList(query) {
-      if (!query.trim()) return
-      const resMaterial = await searchMaterial(query)
-      if (resMaterial.data.length === 0) {
-        const resFurniture = await searchFurniture(query)
-        if (resFurniture.data.length === 0) {
-          const resClothing = await searchClothing(query)
-          if (resClothing.data.length === 0) {
-            const resRecipe = await searchRecipe(query)
-            if (resRecipe.data.length === 0) return
-            this.materialList = resRecipe.data.map(w => {
-              return { name: w.name, _id: w._id, photoSrc: w.photoSrc, num: 1 }
-            })
-          } else {
-            this.materialList = resClothing.data.map(w => {
-              return { name: w.name, _id: w._id, photoSrc: w.photoSrc, num: 1 }
-            })
-          }
-        } else {
-          this.materialList = resFurniture.data.map(w => {
-            return { name: w.name, _id: w._id, photoSrc: w.photoSrc, num: 1 }
-          })
-        }
-      } else {
-        this.materialList = resMaterial.data.map(w => {
-          return { name: w.name, _id: w._id, photoSrc: w.photoSrc, num: 1 }
-        })
-      }
-    },
-    clearMaterialList() {
-      this.materialList = []
-    },
-    addMaterials() {
-      this.newRecipe.materials.push({ photoSrc: '', num: 1, name: '' })
-    },
     dialogAddClose() {
-      this.$refs.newRecipeRef.resetFields()
-      delete this.newRecipe._id
-      delete this.newRecipe.__v
-      this.materialList = []
-    },
-    postRecipe() {
-      this.newRecipe.materials = this.newRecipe.materials.filter(
-        m => m.name !== ''
-      )
-      this.commonApi.postForm('recipe', addRecipe, this)
-    },
-    handleEdit(id) {
-      if (this.$refs['newRecipeRef']) {
-        this.$refs['newRecipeRef'].resetFields()
-      }
-      getRecipe(id)
-        .then(res => {
-          this.dialogVisible = true
-          nextTick(() => {
-            this.newRecipe = res.data
-            this.materialList = this.newRecipe.materials
-          })
-        })
-        .catch(err => this.$message.error(err.message))
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteRecipe, this.fetchData)
-    },
-
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteRecipe,
-        this.fetchData
-      )
+      $refs.recipeFormDataRef.resetFields()
+      delete recipeFormData._id
+      delete recipeFormData.__v
+      materialList = []
     },
   },
-}
+})
 </script>
 
 <style scoped></style>

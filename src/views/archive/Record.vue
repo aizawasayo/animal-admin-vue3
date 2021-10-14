@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入唱片关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="唱片" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('record', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加唱片</el-button
             >
           </el-col>
@@ -40,16 +25,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -83,7 +63,7 @@
       </el-table-column>
       <el-table-column label="日文名" align="center">
         <template #default="scope">
-          {{ scope.row.jpnName | textFilter(5) }}
+          {{ $filters.textFilter(scope.row.jpnName, 5) }}
         </template>
       </el-table-column>
       <el-table-column
@@ -136,48 +116,48 @@
     />
     <el-dialog
       title="添加唱片"
-      :visible.sync="dialogVisible"
+      v-model="dialogVisible"
       width="60%"
       :close-on-click-modal="false"
       :before-close="closeDialog"
     >
       <el-form
-        ref="newRecordRef"
+        ref="recordFormRef"
         :inline="false"
-        :model="newRecord"
-        :rules="newRecordRules"
+        :model="recordFormData"
+        :rules="recordFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="8">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="newRecord.name" />
+              <el-input v-model="recordFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="英文名" prop="engName">
-              <el-input v-model="newRecord.engName" />
+              <el-input v-model="recordFormData.engName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newRecord.jpnName" />
+              <el-input v-model="recordFormData.jpnName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="买入价格" prop="price">
-              <el-input v-model.number="newRecord.price" />
+              <el-input v-model.number="recordFormData.price" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="售出价格" prop="salePrice">
-              <el-input v-model.number="newRecord.salePrice" />
+              <el-input v-model.number="recordFormData.salePrice" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="来源" prop="channel" required>
               <el-select
-                v-model="newRecord.channel"
+                v-model="recordFormData.channel"
                 multiple
                 collapse-tags
                 placeholder="请选择获取方式"
@@ -194,56 +174,59 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="封面" prop="photoSrc">
-              <upload-multi ref="upload" drag :list="newRecord.photoSrc" />
+              <upload-multi
+                ref="uploadRef"
+                drag
+                :list="recordFormData.photoSrc"
+              />
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postRecord">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="handlePost(true)">确 定</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { defineComponent, ref, reactive, computed } from 'vue'
 import { getRecords, addRecord, getRecord, deleteRecord } from '@api/record'
-import getOption from '@utils/get-option'
+import useMix from '@composables/useMix'
 
-export default {
+export default defineComponent({
   name: 'Record',
-  data() {
+  inject: ['apiUrl'],
+  setup() {
+    const recordFormRef = ref(null)
+    const recordFormData = reactive({
+      name: '',
+      engName: '',
+      jpnName: '',
+      price: 3200,
+      salePrice: 800,
+      channel: [],
+      photoSrc: [],
+    })
+
+    const apiOption = {
+      getListApi: getRecords,
+      getInfoApi: getRecord,
+      deleteApi: deleteRecord,
+      addApi: addRecord,
+    }
+    const uploadRef = ref(null)
+    const mixProps = useMix(apiOption, recordFormRef, recordFormData, uploadRef)
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newRecord: {
-        name: '',
-        engName: '',
-        jpnName: '',
-        price: 3200,
-        salePrice: 800,
-        channel: [],
-        photoSrc: [],
-      },
-      channelList: [
-        { text: 'Nook购物', value: 'Nook购物' },
-        { text: 'KK赠送', value: 'KK赠送' },
-        { text: '第一次KK演唱会后', value: '第一次KK演唱会后' },
-        { text: '生日当天KK赠送', value: '生日当天KK赠送' },
-        { text: '隐藏歌曲', value: '隐藏歌曲' },
-      ],
-      newRecordRules: {
+      ...mixProps,
+      recordFormRef,
+      recordFormData,
+      recordFormRules: {
         name: [
           { required: true, message: '请输入唱片名', trigger: 'blur' },
           {
@@ -254,46 +237,18 @@ export default {
           },
         ],
       },
-      multipleSelection: [],
+      uploadRef,
+      channelList: [
+        { text: 'Nook购物', value: 'Nook购物' },
+        { text: 'KK赠送', value: 'KK赠送' },
+        { text: '第一次KK演唱会后', value: '第一次KK演唱会后' },
+        { text: '生日当天KK赠送', value: '生日当天KK赠送' },
+        { text: '隐藏歌曲', value: '隐藏歌曲' },
+      ],
+      isSale: computed(() => recordFormData.orderType === '订购'),
     }
   },
-  computed: {
-    isSale() {
-      const isSaleBl = this.newRecord.orderType === '订购'
-      return isSaleBl
-    },
-  },
-  created() {
-    this.fetchData()
-    this.getOptions()
-  },
-  methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getRecords, this)
-    },
-    getOptions() {
-      getOption('size', list => {
-        this.sizeList = list
-      })
-    },
-    postRecord() {
-      this.commonApi.postUploadForm('record', addRecord, this)
-    },
-    handleEdit(id) {
-      this.commonApi.openEditForm(id, 'record', getRecord, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteRecord, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteRecord,
-        this.fetchData
-      )
-    },
-  },
-}
+})
 </script>
 
 <style scoped></style>

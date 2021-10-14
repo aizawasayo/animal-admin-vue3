@@ -7,21 +7,14 @@
       border
       fit
       highlight-current-row
-      :empty-text="emptyText"
-      @selection-change="
-        selection => commonApi.handleSelectionChange(selection, this)
-      "
-      @filter-change="filters => commonApi.filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      empty-text="没有相关数据"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
-        <template slot-scope="scope">
+        <template #default="scope">
           {{ scope.row.orderNum ? scope.row.orderNum : scope.$index + 1 }}
         </template>
       </el-table-column>
@@ -31,7 +24,7 @@
         prop="name"
         sortable="custom"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           {{ scope.row.name }}
         </template>
       </el-table-column>
@@ -42,7 +35,7 @@
         prop="position"
         sortable="custom"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           <span v-for="(item, index) in scope.row.position">{{
             index === scope.row.position.length - 1 ? item : item + '/'
           }}</span>
@@ -55,17 +48,17 @@
         prop="duration"
         sortable="custom"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           {{ scope.row.duration }}
         </template>
       </el-table-column>
       <el-table-column v-if="isTopic" label="图标" align="center" prop="icon">
-        <template slot-scope="scope">
+        <template #default="scope">
           {{ scope.row.icon }}
         </template>
       </el-table-column>
       <el-table-column v-if="isTopic" label="颜色" align="center" prop="color">
-        <template slot-scope="scope">
+        <template #default="scope">
           {{ scope.row.color }}
         </template>
       </el-table-column>
@@ -75,7 +68,7 @@
         width="150"
         align="center"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-button
             type="primary"
             icon="el-icon-edit"
@@ -94,17 +87,21 @@
     <pagination
       v-show="total > 0"
       :total="total"
-      v-model:page="queryInfo.page"
-      v-model:limit="queryInfo.pageSize"
-      @pagination="fetchData"
+      v-model:page="listQuery.page"
+      v-model:limit="listQuery.pageSize"
     />
   </div>
 </template>
 
 <script>
+import { defineComponent, reactive, computed, watch, toRefs } from 'vue'
+import useDelete from '@composables/useDelete'
+import useFilter from '@composables/useFilter'
+import useList from '@composables/useList'
+import useSort from '@composables/useSort'
 import { getOptions, deleteOption } from '@api/option'
 
-export default {
+export default defineComponent({
   name: 'OptionList',
   props: {
     type: {
@@ -116,53 +113,49 @@ export default {
       default: '',
     },
   },
-  data() {
+  setup(props) {
+    const { type, queryKey } = toRefs(props)
+
+    const { sort, sortJson, sortChange } = useSort() // 列表排序
+
+    const listQuery = reactive({
+      query: queryKey.value,
+      page: 1,
+      pageSize: 10,
+      type: type.value,
+      sort,
+      sortJson,
+    })
+
+    watch(queryKey, val => (listQuery.query = val))
+
+    // 列表请求返回数据及列表刷新方法
+    const { list, total, listLoading, refreshList } = useList(
+      listQuery,
+      getOptions
+    )
+
+    const { filterChange } = useFilter(listQuery) // 列表筛选
+
+    const { selectionChange, handleDelete, multiDelete } = useDelete(
+      deleteOption,
+      refreshList
+    )
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: this.queryKey,
-        page: 1,
-        pageSize: 10,
-        type: this.type,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      emptyText: '没有相关数据',
-      multipleSelection: [],
+      list,
+      total,
+      listLoading,
+      listQuery,
+      refreshList,
+      filterChange,
+      sortChange,
+      selectionChange,
+      handleDelete,
+      multiDelete,
+      isActivity: computed(() => type.value === 'activity'),
+      isTopic: computed(() => type.value === 'topic'),
     }
   },
-  computed: {
-    isActivity() {
-      return this.type === 'activity'
-    },
-    isTopic() {
-      return this.type === 'topic'
-    },
-  },
-  watch: {
-    queryKey(newVal) {
-      this.queryInfo.query = newVal
-    },
-  },
-  created() {
-    this.fetchData()
-  },
-  methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getOptions, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteOption, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteOption,
-        this.fetchData
-      )
-    },
-  },
-}
+})
 </script>

@@ -5,18 +5,6 @@ import { asyncRoutes, constantRoutes } from '@router'
  * @param roles
  * @param route
  */
-// function hasPermission(roles, route) {
-//   if (route.meta && route.meta.roles) {
-//     if (route.meta.roles.indexOf(roles) > -1) {
-//       return true
-//     } else {
-//       return false
-//     }
-//     // return roles.some(role => route.meta.roles.includes(role))
-//   } else {
-//     return true
-//   }
-// }
 function hasPermission(roles, route) {
   if (route.meta && route.meta.roles) {
     return roles.some(role => route.meta.roles.includes(role))
@@ -33,9 +21,7 @@ export function filterAsyncRoutes(routes, roles) {
   const res = []
 
   routes.forEach(route => {
-    const tmp = {
-      ...route,
-    }
+    const tmp = { ...route }
     if (hasPermission(roles, tmp)) {
       if (tmp.children) {
         tmp.children = filterAsyncRoutes(tmp.children, roles)
@@ -49,14 +35,14 @@ export function filterAsyncRoutes(routes, roles) {
 
 const state = {
   routes: [],
-  addRoutes: [],
+  dynamicRoutes: [],
 }
 
 const mutations = {
   SET_ROUTES: (state, routes) => {
-    state.addRoutes = routes
     // 将过滤后的路由和constantRoutes存起来
     state.routes = constantRoutes.concat(routes)
+    state.dynamicRoutes = routes
   },
 }
 

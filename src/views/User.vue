@@ -32,12 +32,7 @@
       @filter-change="filters => filterChange(filters)"
       @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -287,7 +282,7 @@
 </template>
 
 <script>
-import { ref, reactive, defineComponent, nextTick, toRefs } from 'vue'
+import { ref, reactive, defineComponent } from 'vue'
 import { getUsers, addUser, getUser, editUser, deleteUser } from '@api/user'
 import useMix from '@composables/useMix'
 

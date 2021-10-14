@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入家具关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="家具" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('furniture', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加家具</el-button
             >
           </el-col>
@@ -40,16 +25,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -211,32 +191,32 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newFurnitureRef"
+        ref="furnitureFormRef"
         :inline="false"
-        :model="newFurniture"
-        :rules="newFurnitureRules"
+        :model="furnitureFormData"
+        :rules="furnitureFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="8">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="newFurniture.name" />
+              <el-input v-model="furnitureFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="英文名" prop="engName" required>
-              <el-input v-model="newFurniture.engName" />
+              <el-input v-model="furnitureFormData.engName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newFurniture.jpnName" />
+              <el-input v-model="furnitureFormData.jpnName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="类型" prop="type" required>
               <el-select
-                v-model="newFurniture.type"
+                v-model="furnitureFormData.type"
                 multiple
                 collapse-tags
                 placeholder="请选择种类"
@@ -252,13 +232,13 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="价格" prop="price" required>
-              <el-input v-model.number="newFurniture.price" />
+              <el-input v-model.number="furnitureFormData.price" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="尺寸" prop="size" required>
               <el-select
-                v-model="newFurniture.size"
+                v-model="furnitureFormData.size"
                 placeholder="请选择占地面积"
               >
                 <el-option
@@ -273,7 +253,7 @@
           <el-col :span="8">
             <el-form-item label="改造类型" prop="remould">
               <el-select
-                v-model="newFurniture.remould"
+                v-model="furnitureFormData.remould"
                 placeholder="请选择改造类型"
               >
                 <el-option
@@ -288,7 +268,7 @@
           <el-col :span="8">
             <el-form-item label="订购类型" prop="orderType">
               <el-select
-                v-model="newFurniture.orderType"
+                v-model="furnitureFormData.orderType"
                 placeholder="请选择订购类型"
               >
                 <el-option
@@ -303,7 +283,7 @@
           <el-col :span="8">
             <el-form-item label="来源(多选)" prop="channels">
               <el-select
-                v-model="newFurniture.channels"
+                v-model="furnitureFormData.channels"
                 multiple
                 collapse-tags
                 placeholder="请选择获取途径"
@@ -320,7 +300,7 @@
           <el-col :span="8">
             <el-form-item label="所属系列" prop="series">
               <el-select
-                v-model="newFurniture.series"
+                v-model="furnitureFormData.series"
                 placeholder="请选择所属系列"
               >
                 <el-option
@@ -335,7 +315,7 @@
           <el-col :span="8">
             <el-form-item label="所属活动" prop="activity">
               <el-select
-                v-model="newFurniture.activity"
+                v-model="furnitureFormData.activity"
                 placeholder="请选择所属活动"
               >
                 <el-option
@@ -349,13 +329,17 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
-              <upload-multi ref="upload" drag :list="newFurniture.photoSrc" />
+              <upload-multi
+                ref="uploadRef"
+                drag
+                :list="furnitureFormData.photoSrc"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="途径说明" prop="channelDetail">
               <el-input
-                v-model="newFurniture.channelDetail"
+                v-model="furnitureFormData.channelDetail"
                 type="textarea"
                 placeholder="请输入具体途径说明"
               />
@@ -364,15 +348,18 @@
           <el-col :span="24"> </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postFurniture">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="handlePost(true)">确 定</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { defineComponent, ref, reactive, onMounted } from 'vue'
 import {
   getFurnitureList,
   addFurniture,
@@ -380,41 +367,93 @@ import {
   deleteFurniture,
 } from '@api/furniture'
 import getOption from '@utils/get-option'
+import useMix from '@composables/useMix'
 
-export default {
+export default defineComponent({
   name: 'Furniture',
-  data() {
+  inject: ['apiUrl'],
+  setup() {
+    const furnitureFormRef = ref(null)
+    const furnitureFormData = reactive({
+      name: '',
+      engName: '',
+      jpnName: '',
+      price: null,
+      type: ['家具'],
+      remould: '多颜色',
+      orderType: '订购',
+      character: '',
+      series: '',
+      size: '1.0×1.0',
+      activity: '',
+      channels: ['Nook商店'],
+      channelDetail: '',
+      photoSrc: [],
+    })
+
+    const apiOption = {
+      getListApi: getFurnitureList,
+      getInfoApi: getFurniture,
+      deleteApi: deleteFurniture,
+      addApi: addFurniture,
+    }
+
+    const uploadRef = ref(null)
+
+    const mixProps = useMix(
+      apiOption,
+      furnitureFormRef,
+      furnitureFormData,
+      uploadRef
+    )
+
+    const typeList = ref([])
+    const sizeList = ref([])
+    const seriesList = ref([])
+    const activityList = ref([])
+    const channelList = ref([])
+
+    const getOptions = () => {
+      getOption('furnitureChannels', list => {
+        channelList.value = list
+      })
+      getOption('furnitureType', list => {
+        typeList.value = list
+      })
+      getOption('series', list => {
+        seriesList.value = list
+      })
+      getOption('size', list => {
+        sizeList.value = list
+      })
+      getOption('activity', list => {
+        activityList.value = list
+      })
+    }
+
+    onMounted(getOptions)
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
+      ...mixProps,
+      furnitureFormRef,
+      furnitureFormData,
+      furnitureFormRules: {
+        name: [
+          { required: true, message: '请输入家具名', trigger: 'blur' },
+          {
+            min: 1,
+            max: 24,
+            message: '长度在 1 到 24 个字符',
+            trigger: 'blur',
+          },
+        ],
       },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newFurniture: {
-        name: '',
-        engName: '',
-        jpnName: '',
-        price: null,
-        type: ['家具'],
-        remould: '多颜色',
-        orderType: '订购',
-        character: '',
-        series: '',
-        size: '1.0×1.0',
-        activity: '',
-        channels: ['Nook商店'],
-        channelDetail: '',
-        photoSrc: [],
-      },
-      typeList: [],
-      sizeList: [],
+      uploadRef,
+      typeList,
+      sizeList,
+      seriesList,
+      activityList,
+      channelList,
       remouldList: [
         { text: '可改造', value: '可改造' },
         { text: '不可改造', value: '不可改造' },
@@ -426,8 +465,6 @@ export default {
         { text: '里数兑换', value: '里数兑换' },
         { text: '非卖品', value: '非卖品' },
       ],
-      seriesList: [],
-      activityList: [],
       npcList: [
         { text: '狸克', value: '狸克' },
         { text: '西施惠', value: '西施惠' },
@@ -439,65 +476,9 @@ export default {
         { text: '健兆', value: '健兆' },
         { text: '阿獭', value: '阿獭' },
       ],
-      channelList: [],
-      newFurnitureRules: {
-        name: [
-          { required: true, message: '请输入家具名', trigger: 'blur' },
-          {
-            min: 1,
-            max: 24,
-            message: '长度在 1 到 24 个字符',
-            trigger: 'blur',
-          },
-        ],
-      },
-      multipleSelection: [],
     }
   },
-  computed: {},
-  created() {
-    this.fetchData()
-    this.getOptions()
-  },
-  methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getFurnitureList, this)
-    },
-    getOptions() {
-      getOption('furnitureChannels', list => {
-        this.channelList = list
-      })
-      getOption('furnitureType', list => {
-        this.typeList = list
-      })
-      getOption('series', list => {
-        this.seriesList = list
-      })
-      getOption('size', list => {
-        this.sizeList = list
-      })
-      getOption('activity', list => {
-        this.activityList = list
-      })
-    },
-    postFurniture() {
-      this.commonApi.postUploadForm('furniture', addFurniture, this)
-    },
-    handleEdit(id) {
-      this.commonApi.openEditForm(id, 'furniture', getFurniture, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteFurniture, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteFurniture,
-        this.fetchData
-      )
-    },
-  },
-}
+})
 </script>
 
 <style scoped></style>

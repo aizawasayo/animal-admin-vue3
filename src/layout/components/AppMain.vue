@@ -1,7 +1,7 @@
 <template>
   <section class="app-main">
     <router-view v-slot="{ Component, route }">
-      <transition name="fade-transform" mode="out-in">
+      <transition name="fade-transform" mode="out-in" appear>
         <keep-alive :include="cachedViews">
           <component :is="Component" :key="route.path" />
         </keep-alive>
@@ -11,10 +11,21 @@
 </template>
 
 <script>
-import { computed, defineComponent } from 'vue'
+import { defineComponent, computed, h, resolveDynamicComponent } from 'vue'
 import { useStore } from 'vuex'
+
+// const DynamicComponent = defineComponent({
+//   props: ['comp', 'route'],
+//   render() {
+//     const Component = resolveDynamicComponent(this.comp)
+//     return h(Component)
+//   },
+// })
+
 export default defineComponent({
   name: 'AppMain',
+  props: { isShowMain: Boolean },
+  // components: { DynamicComponent },
   setup() {
     const store = useStore()
     return {
@@ -31,6 +42,7 @@ export default defineComponent({
   width: 100%;
   position: relative;
   overflow: hidden;
+  background-color: $bgGreen;
 }
 .fixed-header + .app-main {
   padding-top: 50px;

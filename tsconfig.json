@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "useDefineForClassFields": true, // https://cn.vitejs.dev/guide/features.html#typescript-compiler-options
+    "module": "esnext",
+    "moduleResolution": "node", // 指定模块解析策略，'node' 用于 Node.js 的 CommonJS 实现
+    "strict": true,
+    "allowJs": true, // 允许编译器编译JS，JSX文件
+    "checkJs": true,
+    "noEmit": true, // 编译后不输出任何js文件
+    "jsx": "preserve", // 在 .tsx 中支持 JSX
+    "sourceMap": true, // 生成目标文件的 sourceMap 文件
+    "resolveJsonModule": true, // 允许导入带有“.json”扩展名的模块
+    "esModuleInterop": true, // CommonJS/AMD/UMD 模块导入兼容
+    "importHelpers": true, // 模块导入辅助，通过 tslib 引入 helper 函数，https://www.typescriptlang.org/tsconfig#importHelpers
+    "experimentalDecorators": true,
+    "skipLibCheck": true, // 跳过库声明文件的类型检查
+    "allowSyntheticDefaultImports": true, // 允许如 import React from "react" 这样的默认导入，（从没有设置默认导出的模块中默认导入）
+    "suppressImplicitAnyIndexErrors": true, // 禁止报告对象索引的隐式 anys 错误
+    "baseUrl": "./", // 非绝对地址的模块会基于这个目录去解析，默认值是当前目录
+    "types": ["node", "vite/client"], // 指定加载【哪些】声明文件包，如不设置此项，默认会加载全部能找到的 node_modules/@types/xxx 包
+    // "vite/client"用于 vite 项目中的一些类型定义补充，https://www.typescriptlang.org/tsconfig#types
+    "isolatedModules": true, // https://cn.vitejs.dev/guide/features.html#typescript-compiler-options
+    "paths": {
+      // 配置具体如何解析 require/import 的导入，值是基于 baseUrl 路径的映射列表。https://www.typescriptlang.org/tsconfig#paths
+      "@/*": ["src/*"],
+      "@api/*": ["src/api/*"],
+      "@assets/*": ["src/assets/*"],
+      "@components/*": ["src/components/*"],
+      "@composables/*": ["src/composables/*"],
+      "@layout/*": ["src/layout/*"],
+      "@router/*": ["src/router/*"],
+      "@settings/*": ["src/settings/*"],
+      "@store/*": ["src/store/*"],
+      "@styles/*": ["src/styles/*"],
+      "@utils/*": ["src/utils/*"],
+      "@views/*": ["src/views/*"]
+    },
+    "lib": ["esnext", "dom", "dom.iterable", "scripthost"] // 编译时引入的 ES 功能库
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "exclude": ["node_modules", "babel.config.js"] // 解析时跳过的文件
+}

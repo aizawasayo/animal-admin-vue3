@@ -1,6 +1,7 @@
 <template>
   <svg-icon v-if="icon" :icon-class="icon"></svg-icon>
   <span v-if="title">{{ title }}</span>
+  <!-- <template #title>{{ title }}</template> -->
 </template>
 
 <script>

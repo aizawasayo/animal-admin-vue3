@@ -4,39 +4,29 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryKey"
-              placeholder="请输入评论关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchCommentData"
-              @keyup.enter.native="fetchCommentData"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchCommentData"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="queryKey" keyword="评论" />
           </el-col>
         </el-row>
       </el-col>
       <el-col :span="8" class="flex-right">
-        <el-button type="danger" plain @click="handelMultipleDelete"
+        <el-button type="danger" plain @click="handleMultiDelete"
           >批量删除</el-button
         >
       </el-col>
     </el-row>
     <el-tabs v-model="activeName" style="margin-top: 15px" type="card">
       <el-tab-pane
-        v-for="item in tabOptions"
+        v-for="(item, i) in tabOptions"
         :label="item.label"
         :name="item.key"
       >
-        <span slot="label"> {{ item.label }} </span>
         <keep-alive>
           <comment-list
-            ref="designList"
+            :ref="
+              el => {
+                if (el) commentListRefs[i] = el
+              }
+            "
             :type="item.key"
             :query-key="queryKey"
           />
@@ -47,54 +37,62 @@
 </template>
 
 <script>
-import CommentList from '../components/CommentList'
+import {
+  defineComponent,
+  ref,
+  computed,
+  toRefs,
+  onBeforeUpdate,
+  watch,
+} from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import CommentList from './CommentList.vue'
 
-export default {
+export default defineComponent({
   name: 'CommentIndex',
   components: { CommentList },
   props: ['tabOptions', 'activeTab'],
-  data() {
+  setup(props) {
+    const router = useRouter()
+    const route = useRoute()
+    const { activeTab, tabOptions } = toRefs(props)
+    const activeName = ref(activeTab.value)
+    const queryKey = ref('')
+    const commentListRefs = ref([])
+
+    onBeforeUpdate(() => {
+      commentListRefs.value = []
+    })
+
+    const tabIndex = computed(() =>
+      tabOptions.value.findIndex(item => item.key === activeName.value)
+    )
+
+    watch(activeName, val => router.push(`${route.path}?tab=${val}`), {
+      immediate: true,
+    })
+
+    watch(activeTab, val => (activeName.value = activeTab.value))
+
+    const freshListData = () => {
+      commentListRefs.value[tabIndex.value].refreshList()
+    }
+
+    const handleMultiDelete = () => {
+      commentListRefs.value[tabIndex.value].multiDelete()
+    }
+
     return {
-      activeName: this.activeTab,
-      queryKey: '',
-      dialogAddVisible: false,
-      newDesign: {
-        name: '',
-        type: '',
-        photoSrc: [],
-        content: '',
-      },
-      multipleSelection: [],
+      activeName,
+      tabOptions,
+      queryKey,
+      tabIndex,
+      commentListRefs,
+      handleMultiDelete,
+      freshListData,
     }
   },
-  computed: {
-    tabIndex() {
-      return this.tabOptions.findIndex(item => item.key === this.activeName)
-    },
-  },
-  watch: {
-    activeName(val) {
-      this.$router.push(`${this.$route.path}?tab=${val}`)
-    },
-  },
-  created() {
-    const tab = this.$route.query.tab
-    if (tab) {
-      this.activeName = tab
-    }
-  },
-  methods: {
-    handelMultipleDelete() {
-      this.$refs.designList[this.tabIndex].handelMultipleDelete()
-    },
-    fetchCommentData() {
-      this.$refs.optionList.forEach(item => item.fetchData())
-    },
-    hideDialog() {
-      this.dialogAddVisible = false
-    },
-  },
-}
+})
 </script>
 
 <style scoped></style>

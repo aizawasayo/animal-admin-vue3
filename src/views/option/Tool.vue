@@ -1,32 +1,43 @@
 <template>
-  <option-index :tab-options="tabOptions" :active-tab="activeName"></option-index>
+  <option-index
+    :tab-options="tabOptions"
+    :active-tab="activeName"
+  ></option-index>
 </template>
 
 <script>
-import OptionIndex from '../components/OptionIndex'
+import { defineComponent, ref, watch, onBeforeMount } from 'vue'
+import { useRoute } from 'vue-router'
+import OptionIndex from './components/OptionIndex.vue'
 
-export default {
+export default defineComponent({
   name: 'ToolSetting',
   components: { OptionIndex },
-  data() {
+  setup() {
+    const route = useRoute()
+    const activeName = ref('toolChannels')
+
+    onBeforeMount(() => {
+      if (route.query.tab) activeName.value = route.query.tab
+    })
+
+    watch(
+      () => route.query.tab,
+      val => {
+        if (val) activeName.value = val
+      }
+    )
+
     return {
+      activeName,
       tabOptions: [
         // { label: '', key: 'diyType' },
-        { label: '工具来源', key: 'toolChannels' }
+        { label: '工具来源', key: 'toolChannels' },
         // { label: '解锁数量要求', key: 'diyUnlock' }
       ],
-      // tabIndex:0,
-      activeName: 'toolChannels'
     }
   },
-  created() {
-    const tab = this.$route.query.tab
-    if (tab) {
-      this.activeName = tab
-    }
-  },
-  methods: {}
-}
+})
 </script>
 
 <style scoped></style>

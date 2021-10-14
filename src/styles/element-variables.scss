@@ -1,0 +1,30 @@
+/* 改变主题色变量 */ 
+$--colors: (
+  'primary': (
+    'base': #4FC08D,
+  ),
+  'success': (
+    'base': #8BC34A,
+  ),
+  'warning': (
+    'base': #FFE787,
+  ),
+  'danger': (
+    'base': #7C77B9,
+  ),
+  'error': (
+    'base': #E65D6E,
+  ),
+  'info': (
+    'base': #606266,
+  ),
+);
+$--text-color: (
+  'primary':  #3FB984,
+  'regular': #606266,
+  'secondary': #909399
+);
+$--font-path: 'element-plus/theme-chalk/fonts';
+// 在主题变量后再导入 element-plus的 scss，避免sass混合变量的问题
+@import 'element-plus/packages/theme-chalk/src/index';
+

@@ -1,6 +1,6 @@
 <template>
   <svg :class="svgClass" aria-hidden="true">
-    <use :xlink:href="iconName" :fill="color" />
+    <use :xlink:href="iconName" />
   </svg>
 </template>
 
@@ -17,10 +17,10 @@ export default defineComponent({
       type: String,
       default: '',
     },
-    color: {
-      type: String,
-      default: '#889aa4',
-    },
+    // color: {
+    //   type: String,
+    //   default: '#889aa4',
+    // },
   },
   setup(props) {
     return {
@@ -36,11 +36,12 @@ export default defineComponent({
 })
 </script>
 
-<style scope>
+<style scoped>
 .svg-icon {
   width: 1em;
   height: 1em;
+  vertical-align: -0.15em !important;
   fill: currentColor;
-  vertical-align: middle;
+  /* vertical-align: middle; */
 }
 </style>

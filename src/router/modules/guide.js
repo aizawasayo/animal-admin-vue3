@@ -22,25 +22,25 @@ const guideRouter = {
       component: () => import('@views/guide/Add.vue'),
       name: 'GuideAdd',
       meta: {
+        hidden: true,
         title: '新增攻略',
         icon: 'create',
         noCache: true,
         activeMenu: '/guide/index',
         roles: ['admin'],
       },
-      hidden: true,
     },
     {
       path: 'edit/:id',
       component: () => import('@views/guide/Edit.vue'),
       name: 'GuideEdit',
       meta: {
+        hidden: true,
         title: '编辑攻略',
         noCache: true,
         activeMenu: '/guide/index',
         roles: ['admin'],
       },
-      hidden: true,
     },
   ],
 }

@@ -1,10 +1,4 @@
-import {
-  computed,
-  onBeforeMount,
-  onBeforeUnmount,
-  onMounted,
-  watchEffect,
-} from 'vue'
+import { computed, onBeforeMount, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
 
@@ -13,7 +7,6 @@ export default function useResize() {
   const WIDTH = 992
   const store = useStore()
   const route = useRoute()
-
   const device = computed(() => store.getters.device)
   const sidebar = computed(() => store.getters.sidebar)
 
@@ -28,11 +21,6 @@ export default function useResize() {
       }
     }
   }
-  watchEffect(() => {
-    if (device.value === 'mobile' && sidebar.value.opened) {
-      store.dispatch('app/closeSideBar', { withoutAnimation: false })
-    }
-  })
   onBeforeMount(() => {
     window.addEventListener('resize', $_resizeHandler)
   })
@@ -40,11 +28,16 @@ export default function useResize() {
     window.removeEventListener('resize', $_resizeHandler)
   })
   onMounted(() => {
-    // const isMobile = $_isMobile()
     if ($_isMobile()) {
       store.dispatch('app/toggleDevice', 'mobile')
       store.dispatch('app/closeSideBar', { withoutAnimation: true })
     }
   })
+  watch(route, () => {
+    if (device.value === 'mobile' && sidebar.value.opened) {
+      store.dispatch('app/closeSideBar', { withoutAnimation: false })
+    }
+  })
+
   return { device, sidebar }
 }

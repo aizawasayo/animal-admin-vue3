@@ -1,17 +1,22 @@
 import { ref, toRefs, watch } from 'vue'
 
 // 请求分页列表数据
-export default function useList(listQuery, getListApi) {
+export default function useList(listQuery, getListApi, type) {
   const { page, pageSize } = toRefs(listQuery)
   const list = ref(null)
   const total = ref(0)
   const listLoading = ref(false)
   const error = ref(null)
 
+  let params = [] // 用来处理评论 api 的特殊情况
+  type && type.value
+    ? (params = [type.value, listQuery])
+    : (params = [listQuery])
+
   const getList = async () => {
     listLoading.value = true
     try {
-      const response = await getListApi(listQuery)
+      const response = await getListApi(...params)
       list.value = response.data.list
       total.value = response.data.total
     } catch (err) {

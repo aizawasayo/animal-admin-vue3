@@ -4,20 +4,7 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入攻略名称关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="攻略" />
           </el-col>
           <el-col :span="8">
             <router-link :to="'/guide/add/'">
@@ -41,16 +28,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -96,7 +78,7 @@
         label="发布状态"
         width="110"
       >
-        <template slot-scope="{ row }">
+        <template #default="{ row }">
           <el-tag :type="statusFilter(row.status)">
             {{ row.status === 'published' ? '已发布' : '草稿' }}
           </el-tag>
@@ -114,8 +96,8 @@
         </template>
       </el-table-column>
       <el-table-column width="120px" align="center" label="作者">
-        <template #default="scope">
-          <span>{{ scope.row.author && scope.row.author.username }}</span>
+        <template #default="{ row }">
+          <span>{{ row.author && row.author.username }}</span>
         </template>
       </el-table-column>
       <el-table-column
@@ -125,7 +107,10 @@
         align="center"
       >
         <template #default="scope">
-          <router-link :to="'/guide/edit/' + scope.row._id">
+          <router-link
+            :to="'/guide/edit/' + scope.row._id"
+            style="margin-right: 10px"
+          >
             <el-button
               type="primary"
               size="small"
@@ -151,66 +136,73 @@
 </template>
 
 <script>
+import { defineComponent, reactive } from 'vue'
+import useDelete from '@composables/useDelete'
+import useFilter from '@composables/useFilter'
+import useList from '@composables/useList'
+import useSort from '@composables/useSort'
 import { getGuides, deleteGuide } from '@api/guide'
 
-export default {
+export default defineComponent({
   name: 'Guide',
-  data() {
-    return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      commentList: [
-        { text: '开放', value: false },
-        { text: '关闭', value: true },
-      ],
-      newGuideRules: {
-        name: [
-          { required: true, message: '请输入岛民名字', trigger: 'blur' },
-          { min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur' },
-        ],
-      },
-      multipleSelection: [],
-    }
-  },
-  computed: {},
-  created() {
-    this.fetchData()
-  },
-  methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getGuides, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteGuide, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteGuide,
-        this.fetchData
-      )
-    },
-    commentHandler(state, id) {},
-    statusFilter(status) {
+  inject: ['apiUrl'],
+  setup() {
+    const { sort, sortJson, sortChange } = useSort()
+
+    const listQuery = reactive({
+      query: '',
+      page: 1,
+      pageSize: 10,
+      sort,
+      sortJson,
+    })
+
+    const { list, total, listLoading, refreshList } = useList(
+      listQuery,
+      getGuides
+    )
+
+    const { filterChange } = useFilter(listQuery)
+
+    const { selectionChange, handleDelete, multiDelete } = useDelete(
+      deleteGuide,
+      refreshList
+    )
+
+    const statusFilter = status => {
       const statusMap = {
         published: 'success',
         draft: 'info',
         deleted: 'danger',
       }
       return statusMap[status]
-    },
+    }
+
+    return {
+      list,
+      total,
+      listLoading,
+      listQuery,
+      refreshList,
+      filterChange,
+      sortChange,
+      selectionChange,
+      handleDelete,
+      multiDelete,
+      guideFormRules: {
+        name: [
+          { required: true, message: '请输入岛民名字', trigger: 'blur' },
+          { min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur' },
+        ],
+      },
+      commentList: [
+        { text: '开放', value: false },
+        { text: '关闭', value: true },
+      ],
+      statusFilter,
+    }
   },
-}
+})
 </script>
 
 <style scoped></style>

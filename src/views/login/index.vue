@@ -1,9 +1,9 @@
 <template>
   <div class="login-container">
     <el-form
-      ref="loginForm"
-      :model="loginForm"
-      :rules="loginRules"
+      ref="loginFormRef"
+      :model="loginFormData"
+      :rules="loginFormRules"
       class="login-form"
       auto-complete="on"
       label-position="left"
@@ -17,8 +17,8 @@
           <svg-icon icon-class="user" />
         </span>
         <el-input
-          ref="username"
-          v-model="loginForm.username"
+          ref="usernameRef"
+          v-model="loginFormData.username"
           placeholder="Username"
           name="username"
           type="text"
@@ -32,8 +32,8 @@
           <svg-icon icon-class="password" />
         </span>
         <el-input
-          ref="password"
-          v-model="loginForm.password"
+          ref="passwordRef"
+          v-model="loginFormData.password"
           :type="passwordType"
           placeholder="Password"
           name="password"
@@ -47,9 +47,8 @@
           />
         </span>
       </el-form-item>
-
       <el-button
-        :loading="loading"
+        :loading="isLoading"
         type="primary"
         style="width: 100%; margin-bottom: 30px"
         @click.native.prevent="handleLogin"
@@ -66,11 +65,76 @@
 
 <script>
 // import { validUsername } from '@utils/validate'
-import { nextTick } from 'vue'
+import { defineComponent, nextTick, reactive, ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { ElMessage } from 'element-plus'
 
-export default {
+export default defineComponent({
   name: 'Login',
-  data() {
+  setup() {
+    const store = useStore()
+    const router = useRouter()
+    const route = useRoute()
+
+    const loginFormRef = ref(null)
+    const loginFormData = reactive({
+      username: 'aizawasayo',
+      password: 'iwnini122900',
+    })
+    const isLoading = ref(false)
+    const redirect = ref(undefined)
+
+    const usernameRef = ref(null)
+    const passwordRef = ref(null)
+    const passwordType = ref('password')
+
+    const showPwd = () => {
+      if (passwordType.value === 'password') {
+        passwordType.value = ''
+      } else {
+        passwordType.value = 'password'
+      }
+      nextTick(() => {
+        passwordRef.value.focus()
+      })
+    }
+
+    const handleLogin = () => {
+      loginFormRef.value.validate(valid => {
+        if (valid) {
+          isLoading.value = true
+          store
+            .dispatch('user/login', loginFormData)
+            .then(res => {
+              if (res.user.roles.includes('admin')) {
+                router.push({ path: redirect.value || '/' })
+              } else {
+                // 普通用户去首页
+                router.push({ path: '/' })
+              }
+
+              isLoading.value = false
+            })
+            .catch(err => {
+              ElMessage.error(err.message)
+              isLoading.value = false
+            })
+        } else {
+          console.log('输入的登录信息有误!!')
+          return false
+        }
+      })
+    }
+
+    watch(
+      () => route.query,
+      val => {
+        redirect.value = route.query && route.query.redirect
+      },
+      { immediate: true }
+    )
+
     const validateUser = (rule, value, callback) => {
       if (!value) {
         callback(new Error('请将用户名和密码填写完整！'))
@@ -78,9 +142,11 @@ export default {
         callback()
       }
     }
+
     return {
-      loginForm: { username: 'aizawasayo', password: 'iwnini122900' },
-      loginRules: {
+      loginFormRef,
+      loginFormData,
+      loginFormRules: {
         username: [
           { required: true, trigger: 'blur', validator: validateUser },
         ],
@@ -88,58 +154,16 @@ export default {
           { required: true, trigger: 'blur', validator: validateUser },
         ],
       },
-      loading: false,
-      passwordType: 'password',
-      redirect: undefined,
+      isLoading,
+      passwordType,
+      usernameRef,
+      passwordRef,
+      redirect,
+      showPwd,
+      handleLogin,
     }
   },
-  watch: {
-    $route: {
-      handler: function (route) {
-        this.redirect = route.query && route.query.redirect
-      },
-      immediate: true,
-    },
-  },
-  methods: {
-    showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
-      } else {
-        this.passwordType = 'password'
-      }
-      this.$nextTick(() => {
-        this.$refs.password.focus()
-      })
-    },
-    handleLogin() {
-      this.$refs.loginForm.validate(valid => {
-        if (valid) {
-          this.loading = true
-          this.$store
-            .dispatch('user/login', this.loginForm)
-            .then(res => {
-              if (res.user.roles.includes('admin')) {
-                this.$router.push({ path: this.redirect || '/' })
-              } else {
-                // 普通用户去首页
-                this.$router.push({ path: '/' })
-              }
-
-              this.loading = false
-            })
-            .catch(err => {
-              this.$message.error(err.message)
-              this.loading = false
-            })
-        } else {
-          console.log('输入的登录信息有误!!')
-          return false
-        }
-      })
-    },
-  },
-}
+})
 </script>
 
 <style lang="scss">

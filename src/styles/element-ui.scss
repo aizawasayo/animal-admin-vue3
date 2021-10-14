@@ -61,3 +61,11 @@
 .el-pagination.is-background .btn-prev {
   padding-left: 10px;
 }
+
+.el-tabs--card > .el-tabs__header .el-tabs__nav {
+  background-color: $white;
+}
+
+.el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label:before{
+  color: $red !important;
+}

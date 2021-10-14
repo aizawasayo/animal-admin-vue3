@@ -1,5 +1,5 @@
 <template>
-  <div :style="{ height: height + 'px', zIndex: zIndex }">
+  <div :style="{ height: height + 'px', zIndex: zIndex }" ref="elRef">
     <div
       :class="className"
       :style="{
@@ -18,7 +18,9 @@
 </template>
 
 <script>
-export default {
+import { defineComponent, ref, onMounted, onActivated, onUnmounted } from 'vue'
+
+export default defineComponent({
   name: 'Sticky',
   props: {
     stickyTop: {
@@ -34,64 +36,74 @@ export default {
       default: '',
     },
   },
-  data() {
+  setup(props, { emit }) {
+    const active = ref(false)
+    const position = ref('')
+    const width = ref(undefined)
+    const height = ref(undefined)
+    const isSticky = ref(false)
+    const elRef = ref(null)
+
+    const reset = () => {
+      position.value = ''
+      width.value = 'auto'
+      active.value = false
+      isSticky.value = false
+    }
+
+    const sticky = () => {
+      if (active.value) return
+      position.value = 'fixed'
+      active.value = true
+      width.value = width.value + 'px'
+      isSticky.value = true
+    }
+
+    const handleReset = () => {
+      if (!active.value) {
+        return
+      }
+      reset()
+    }
+
+    const handleScroll = () => {
+      const w = elRef.value.getBoundingClientRect().width
+      width.value = w?.toString() + 'px' || 'auto'
+      const offsetTop = elRef.value.getBoundingClientRect().top
+      if (offsetTop < props.stickyTop) {
+        sticky()
+        return
+      }
+      handleReset()
+    }
+
+    const handleResize = () => {
+      if (isSticky.value) {
+        width.value = elRef.value.getBoundingClientRect().width + 'px'
+      }
+    }
+
+    onMounted(() => {
+      height.value = elRef.value.getBoundingClientRect().height
+      window.addEventListener('scroll', handleScroll)
+      window.addEventListener('resize', handleResize)
+    })
+
+    onActivated(handleScroll)
+
+    onUnmounted(() => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleResize)
+    })
+
     return {
-      active: false,
-      position: '',
-      width: undefined,
-      height: undefined,
-      isSticky: false,
+      active,
+      position,
+      width,
+      height,
+      isSticky,
+      elRef,
     }
   },
-  mounted() {
-    this.height = this.$el.getBoundingClientRect().height
-    window.addEventListener('scroll', this.handleScroll)
-    window.addEventListener('resize', this.handleResize)
-  },
-  activated() {
-    this.handleScroll()
-  },
-  unmounted() {
-    window.removeEventListener('scroll', this.handleScroll)
-    window.removeEventListener('resize', this.handleResize)
-  },
-  methods: {
-    sticky() {
-      if (this.active) {
-        return
-      }
-      this.position = 'fixed'
-      this.active = true
-      this.width = this.width + 'px'
-      this.isSticky = true
-    },
-    handleReset() {
-      if (!this.active) {
-        return
-      }
-      this.reset()
-    },
-    reset() {
-      this.position = ''
-      this.width = 'auto'
-      this.active = false
-      this.isSticky = false
-    },
-    handleScroll() {
-      const width = this.$el.getBoundingClientRect().width
-      this.width = width || 'auto'
-      const offsetTop = this.$el.getBoundingClientRect().top
-      if (offsetTop < this.stickyTop) {
-        this.sticky()
-        return
-      }
-      this.handleReset()
-    },
-    handleResize() {
-      if (this.isSticky) {
-        this.width = this.$el.getBoundingClientRect().width + 'px'
-      }
-    },
-  },
-}
+})
 </script>

@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入植物关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="植物" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('plant', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加植物</el-button
             >
           </el-col>
@@ -40,16 +25,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -141,7 +121,7 @@
             type="primary"
             icon="el-icon-edit"
             size="small"
-            @click="handleEdit(scope.row._id)"
+            @click="handleEdit(scope.row._id, openEditCallback)"
           ></el-button>
           <el-button
             type="danger"
@@ -166,37 +146,37 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newPlantRef"
+        ref="plantFormRef"
         :inline="false"
-        :model="newPlant"
-        :rules="newPlantRules"
+        :model="plantFormData"
+        :rules="plantFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="6">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="newPlant.name" />
+              <el-input v-model="plantFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="英文名" prop="engName">
-              <el-input v-model="newPlant.engName" />
+              <el-input v-model="plantFormData.engName" />
             </el-form-item>
           </el-col>
           <!-- <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newPlant.jpnName" />
+              <el-input v-model="plantFormData.jpnName" />
             </el-form-item>
           </el-col> -->
           <el-col :span="5">
             <el-form-item label="价格" prop="price">
-              <el-input v-model.number="newPlant.price" />
+              <el-input v-model.number="plantFormData.price" />
             </el-form-item>
           </el-col>
           <el-col :span="7">
             <el-form-item label="种类" prop="type">
               <el-select
-                v-model="newPlant.type"
+                v-model="plantFormData.type"
                 multiple
                 collapse-tags
                 placeholder="请选择种类"
@@ -214,16 +194,16 @@
         <el-row v-show="notSeed">
           <el-col :span="8">
             <el-form-item label="来源" prop="channel">
-              <el-radio-group v-model="newPlant.channel">
+              <el-radio-group v-model="plantFormData.channel">
                 <el-radio label="种子">种子</el-radio>
                 <el-radio label="花卉杂交">花卉杂交</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
-          <el-col v-if="newPlant.channel == '种子'" :span="16">
+          <el-col v-if="plantFormData.channel == '种子'" :span="16">
             <el-form-item label="种子名称" prop="seed">
               <el-select
-                v-model="newPlant.seed"
+                v-model="plantFormData.seed"
                 :remote-method="query => getPlantList(query, 'seed')"
                 filterable
                 default-first-option
@@ -239,15 +219,15 @@
               </el-select>
             </el-form-item>
           </el-col>
-          <!-- <div v-if="newPlant.channel == '花卉杂交'"> -->
+          <!-- <div v-if="plantFormData.channel == '花卉杂交'"> -->
           <el-col
-            v-show="newPlant.channel == '花卉杂交'"
-            v-for="(item, i) in newPlant.mixPlant"
+            v-show="plantFormData.channel == '花卉杂交'"
+            v-for="(item, i) in plantFormData.mixPlant"
             :span="8"
           >
             <el-form-item :label="'花卉' + (i + 1)" prop="" label-width="80px">
               <el-select
-                v-model="newPlant.mixPlant[i]"
+                v-model="plantFormData.mixPlant[i]"
                 :remote-method="query => getPlantList(query, 'mix')"
                 filterable
                 default-first-option
@@ -267,9 +247,9 @@
           <el-col :span="2">
             <el-form-item label="成长阶段" label-width="80px"> </el-form-item>
           </el-col>
-          <el-col v-for="(item, i) in newPlant.growStage" :span="7">
+          <el-col v-for="(item, i) in plantFormData.growStage" :span="7">
             <el-form-item :label="'阶段' + (i + 1)" prop="" label-width="80px">
-              <el-select v-model="newPlant.growStage[i]">
+              <el-select v-model="plantFormData.growStage[i]">
                 <el-option
                   v-for="item1 in growList[i]"
                   :label="item1"
@@ -281,7 +261,7 @@
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
               <upload-single
-                v-model="newPlant.photoSrc"
+                v-model="plantFormData.photoSrc"
                 dialog-width="30%"
                 drag
               />
@@ -289,15 +269,19 @@
           </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postPlant">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="handlePost">确 定</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { defineComponent, ref, reactive, computed } from 'vue'
+import { ElMessage } from 'element-plus'
 import {
   getPlants,
   addPlant,
@@ -306,49 +290,96 @@ import {
   searchPlant,
 } from '@api/plant'
 import { searchMaterial } from '@api/material'
-import { nextTick } from 'vue'
+import useMix from '@composables/useMix'
 
-export default {
+export default defineComponent({
   name: 'Plant',
-  data() {
+  inject: ['apiUrl'],
+  setup() {
+    const plantFormRef = ref(null)
+    const plantFormData = reactive({
+      name: '',
+      engName: '',
+      jpnName: '',
+      price: null,
+      type: [],
+      channel: '',
+      seed: null,
+      mixPlant: [
+        {
+          name: '',
+          _id: '',
+          photoSrc: '',
+        },
+        {
+          name: '',
+          _id: '',
+          photoSrc: '',
+        },
+      ],
+      growStage: ['', '', '', '', ''],
+      photoSrc: '',
+    })
+
+    const apiOption = {
+      getListApi: getPlants,
+      getInfoApi: getPlant,
+      deleteApi: deletePlant,
+      addApi: addPlant,
+    }
+    const mixProps = useMix(apiOption, plantFormRef, plantFormData)
+
+    const seedList = ref([])
+    const mixList = ref([])
+
+    const getPlantList = (query, type) => {
+      if (!query.trim()) return
+      if (type === 'mix') {
+        searchMaterial(query)
+          .then(response => {
+            if (response.data.length === 0) return
+            const listname = type + 'List'
+            this[listname] = response.data.map(v => {
+              return { name: v.name, _id: v._id, photoSrc: v.photoSrc }
+            })
+          })
+          .catch(err => ElMessage.error(err.message))
+      } else {
+        searchPlant(query)
+          .then(response => {
+            if (response.data.length === 0) return
+            const listname = type + 'List'
+            this[listname] = response.data.map(v => {
+              return { name: v.name, _id: v._id, photoSrc: v.photoSrc }
+            })
+          })
+          .catch(err => ElMessage.error(err.message))
+      }
+    }
+
+    const openEditCallback = () => {
+      if (plantFormData.channel === '种子') {
+        seedList.value[0] = plantFormData.seed
+      } else if (plantFormData.channel === '花卉杂交') {
+        mixList.value = plantFormData.mixPlant
+      }
+    }
+    const beforePostProcess = formData => {
+      formData.growStage = formData.growStage.filter(m => m.name !== '')
+    }
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newPlant: {
-        name: '',
-        engName: '',
-        jpnName: '',
-        price: null,
-        type: [],
-        channel: '',
-        seed: null,
-        mixPlant: [
-          {
-            name: '',
-            _id: '',
-            photoSrc: '',
-          },
-          {
-            name: '',
-            _id: '',
-            photoSrc: '',
-          },
+      ...mixProps,
+      plantFormRef,
+      plantFormData,
+      plantFormRules: {
+        name: [
+          { required: true, message: '请输入植物名字', trigger: 'blur' },
+          { min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur' },
         ],
-        growStage: ['', '', '', '', ''],
-        photoSrc: '',
       },
-      seedList: [],
-      mixList: [],
+      seedList,
+      mixList,
       growList: [
         ['', '幼苗', '种子', '球根', '杂交', '花苗', '树苗', '竹笋苗'],
         ['', 'S', '花芽', '幼苗'],
@@ -370,98 +401,27 @@ export default {
         { text: '种子', value: '种子' },
         { text: '花卉杂交', value: '花卉杂交' },
       ],
-      newPlantRules: {
-        name: [
-          { required: true, message: '请输入植物名字', trigger: 'blur' },
-          { min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur' },
-        ],
-      },
-      multipleSelection: [],
+      notSeed: computed(() => {
+        const isSeed =
+          plantFormData.type.includes('种子') ||
+          plantFormData.type.includes('树苗')
+        return !isSeed
+      }),
+      getPlantList,
+      openEditCallback,
+      beforePostProcess,
     }
   },
-  computed: {
-    notSeed() {
-      const isSeed =
-        this.newPlant.type.includes('种子') ||
-        this.newPlant.type.includes('树苗')
-      return !isSeed
-    },
-  },
-  created() {
-    this.fetchData()
-  },
   methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getPlants, this)
-    },
-    getPlantList(query, type) {
-      if (!query.trim()) return
-      if (type === 'mix') {
-        searchMaterial(query)
-          .then(response => {
-            if (response.data.length === 0) return
-            const listname = type + 'List'
-            this[listname] = response.data.map(v => {
-              return { name: v.name, _id: v._id, photoSrc: v.photoSrc }
-            })
-          })
-          .catch(err => this.$message.error(err.message))
-      } else {
-        searchPlant(query)
-          .then(response => {
-            if (response.data.length === 0) return
-            const listname = type + 'List'
-            this[listname] = response.data.map(v => {
-              return { name: v.name, _id: v._id, photoSrc: v.photoSrc }
-            })
-          })
-          .catch(err => this.$message.error(err.message))
-      }
-    },
     dialogAddClose() {
-      this.$refs.newPlantRef.resetFields()
-      delete this.newPlant._id
-      delete this.newPlant.__v
-      this.seedList = []
-      this.mixList = []
-      this.growStage = ['', '', '', '', '']
-    },
-    postPlant() {
-      this.newPlant.growStage = this.newPlant.growStage.filter(
-        m => m.name !== ''
-      )
-      this.commonApi.postForm('plant', addPlant, this)
-    },
-    handleEdit(id) {
-      if (this.$refs['newPlantRef']) {
-        this.$refs['newPlantRef'].resetFields()
-      }
-      getPlant(id)
-        .then(res => {
-          this.dialogVisible = true
-          nextTick(() => {
-            this.newPlant = res.data
-            if (this.newPlant.channel === '种子') {
-              this.seedList[0] = this.newPlant.seed
-            } else if (this.newPlant.channel === '花卉杂交') {
-              this.mixList = this.newPlant.mixPlant
-            }
-          })
-        })
-        .catch(err => this.$message.error(err.message))
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deletePlant, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deletePlant,
-        this.fetchData
-      )
+      delete plantFormData._id
+      delete plantFormData.__v
+      seedList.value = []
+      mixList.value = []
+      plantFormData.growStage = ['', '', '', '', '']
     },
   },
-}
+})
 </script>
 
 <style scoped></style>

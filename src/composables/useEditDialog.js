@@ -19,15 +19,16 @@ export default function useEdit(formRef, formData) {
     formData['__v'] = undefined
   }
   // 打开弹窗并初始化数据
-  const openAddDialog = () => {
+  const openAddDialog = callback => {
     dialogVisible.value = true
     nextTick(() => {
       // $refs['formDataRef'].resetFields()
       clearForm()
+      if (callback && typeof callback === Function) callback()
     })
   }
   // 请求信息并打开编辑弹窗
-  const openEditDialog = (id, getInfoApi) => {
+  const openEditDialog = (id, getInfoApi, callback) => {
     if (formRef.value) {
       formRef.value.resetFields()
     }
@@ -43,6 +44,7 @@ export default function useEdit(formRef, formData) {
             formData.startDate = formData.startDate + '000'
             // formData.startDate = standardTime(formData.startDate)
           }
+          if (callback) callback() // 一些额外的表单数据处理
         })
       })
       .catch(err => ElMessage.error(err.message))
@@ -50,9 +52,7 @@ export default function useEdit(formRef, formData) {
 
   // 关闭弹窗并清空数据
   const closeDialog = done => {
-    console.log(formData)
     clearForm()
-    console.log(formData)
     done()
   }
 

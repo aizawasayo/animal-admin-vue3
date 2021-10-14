@@ -9,20 +9,30 @@
     <div class="right-menu">
       <template v-if="device !== 'mobile'">
         <el-tooltip content="布局大小" placement="bottom">
-          <size-select id="size-select" class="right-menu-item hover-effect" />
+          <size-select class="right-menu-item hover-effect" />
         </el-tooltip>
-        <screenfull id="screenfull" class="right-menu-item hover-effect" />
+        <screenfull class="right-menu-item hover-effect" />
       </template>
-      <el-dropdown class="avatar-container" trigger="click">
-        <template #default>
-          <div class="avatar-wrapper">
-            <img
-              :src="apiUrl + avatar + '?imageView2/1/w/80/h/80'"
-              class="user-avatar"
-            />
-            <i class="el-icon-caret-bottom" />
-          </div>
-        </template>
+      <div class="right-menu-item">
+        <el-divider
+          direction="vertical"
+          class="right-menu-divider"
+        ></el-divider>
+      </div>
+      <el-dropdown
+        class="avatar-container right-menu-item hover-effect"
+        trigger="click"
+        placement="bottom-start"
+      >
+        <div class="avatar-wrapper">
+          <img
+            :src="apiUrl + avatar + '?imageView2/1/w/80/h/80'"
+            class="user-avatar"
+          />
+          <el-icon :size="14" style="margin: 0 6px">
+            <caret-bottom />
+          </el-icon>
+        </div>
         <template #dropdown>
           <el-dropdown-menu class="user-dropdown">
             <router-link to="/">
@@ -39,28 +49,26 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 import Breadcrumb from '@components/Breadcrumb.vue'
 import Hamburger from '@components/Hamburger.vue'
 import Screenfull from '@components/Screenfull.vue'
 import SizeSelect from '@components/SizeSelect.vue'
+import { ElMessage } from 'element-plus'
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
+import { CaretBottom } from '@element-plus/icons'
 
 export default {
-  components: { Breadcrumb, Hamburger, Screenfull, SizeSelect },
+  components: { Breadcrumb, Hamburger, Screenfull, SizeSelect, CaretBottom },
   inject: ['apiUrl'],
-  // computed: {
-  //   ...mapGetters['device']
-  // },
   setup() {
     const store = useStore()
     const router = useRouter()
     const route = useRoute()
     const logout = async () => {
       await store.dispatch('user/logout')
-      this.$message.success('登出成功')
+      ElMessage.success('登出成功')
       router.push(`/login?redirect=${route.fullPath}`)
     }
     return {
@@ -102,12 +110,16 @@ export default {
   .right-menu {
     float: right;
     height: 100%;
+    margin-right: 15px;
     line-height: 50px;
 
     &:focus {
       outline: none;
     }
-
+    .right-menu-divider {
+      height: 22px;
+      margin: 0 4px;
+    }
     .right-menu-item {
       display: inline-block;
       padding: 0 8px;

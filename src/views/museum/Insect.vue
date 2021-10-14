@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入昆虫名称关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="昆虫" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('insect', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加昆虫</el-button
             >
           </el-col>
@@ -44,12 +29,7 @@
       @filter-change="filters => filterChange(filters, this)"
       @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="50">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -215,37 +195,37 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newInsectRef"
+        ref="insectFormDataRef"
         :inline="false"
-        :model="newInsect"
-        :rules="newInsectRules"
+        :model="insectFormData"
+        :rules="insectFormDataRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="8">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="newInsect.name" />
+              <el-input v-model="insectFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="英文名" prop="engName">
-              <el-input v-model="newInsect.engName" />
+              <el-input v-model="insectFormData.engName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newInsect.jpnName" />
+              <el-input v-model="insectFormData.jpnName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="价格" prop="price">
-              <el-input v-model.number="newInsect.price" />
+              <el-input v-model.number="insectFormData.price" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="场所" prop="locale">
               <el-select
-                v-model="newInsect.locale"
+                v-model="insectFormData.locale"
                 multiple
                 placeholder="请选择出现场所"
               >
@@ -261,7 +241,7 @@
           <el-col :span="8">
             <el-form-item label="出现天气" prop="weatherCondition">
               <el-select
-                v-model="newInsect.weatherCondition"
+                v-model="insectFormData.weatherCondition"
                 placeholder="请选择出现天气"
               >
                 <el-option
@@ -280,7 +260,7 @@
           <el-col :span="9">
             <el-form-item label="北半球" prop="activeTime.north">
               <el-select
-                v-model="newInsect.activeTime.north"
+                v-model="insectFormData.activeTime.north"
                 multiple
                 collapse-tags
                 clearable
@@ -304,7 +284,7 @@
           <el-col :span="9">
             <el-form-item label="南半球" prop="activeTime.south">
               <el-select
-                v-model="newInsect.activeTime.south"
+                v-model="insectFormData.activeTime.south"
                 multiple
                 collapse-tags
                 clearable
@@ -331,7 +311,7 @@
               prop="period"
               label-width="160px"
             >
-              <!-- <el-select v-model="newInsect.period" placeholder="请选择活跃时间">
+              <!-- <el-select v-model="insectFormData.period" placeholder="请选择活跃时间">
                 <el-option v-for="item in periodList"  :label="item.text" :value="item.value"> </el-option>
               </el-select> -->
             </el-form-item>
@@ -339,7 +319,7 @@
           <el-col :span="9">
             <el-form-item label="开始时间" prop="periodStart">
               <el-time-select
-                v-model="newInsect.periodStart"
+                v-model="insectFormData.periodStart"
                 :picker-options="periodOptions"
                 placeholder="请选择开始时间"
               >
@@ -349,7 +329,7 @@
           <el-col :span="9">
             <el-form-item label="结束时间" prop="periodEnd">
               <el-time-select
-                v-model="newInsect.periodEnd"
+                v-model="insectFormData.periodEnd"
                 :picker-options="periodOptions"
                 placeholder="请选择结束时间"
               >
@@ -359,7 +339,7 @@
           <el-col :span="8">
             <el-form-item label="解锁要求" prop="unlockCondition">
               <el-select
-                v-model="newInsect.unlockCondition"
+                v-model="insectFormData.unlockCondition"
                 placeholder="请选择解锁条件"
               >
                 <el-option
@@ -374,7 +354,7 @@
           <el-col :span="8">
             <el-form-item label="稀有度" prop="rarity">
               <el-select
-                v-model="newInsect.rarity"
+                v-model="insectFormData.rarity"
                 placeholder="请选择稀有程度"
               >
                 <el-option
@@ -388,7 +368,7 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="其他选项" prop="elseCondition">
-              <el-checkbox-group v-model="newInsect.elseCondition">
+              <el-checkbox-group v-model="insectFormData.elseCondition">
                 <el-checkbox label="飞行"></el-checkbox>
                 <el-checkbox label="跳跃"></el-checkbox>
                 <el-checkbox label="爬行"></el-checkbox>
@@ -409,89 +389,98 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
-              <upload-single v-model="newInsect.photoSrc" dialog-width="30%" />
+              <upload-single
+                v-model="insectFormData.photoSrc"
+                dialog-width="30%"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="简介" prop="introduction">
-              <el-input v-model="newInsect.introduction" type="textarea" />
+              <el-input v-model="insectFormData.introduction" type="textarea" />
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postInsect">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button
+            type="primary"
+            @click="handlePost(false, beforePostProcess)"
+            >确 定</el-button
+          >
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { defineComponent, ref, reactive, onMounted } from 'vue'
 import getOption from '@utils/get-option'
 import { getInsects, addInsect, getInsect, deleteInsect } from '@api/insect'
+import useMix from '@composables/useMix'
+import useSelectMonth from '@composables/useSelectMonth'
+import usePeriodProcess from '@composables/usePeriodProcess'
 
-export default {
+export default defineComponent({
   name: 'Insect',
-  data() {
+  inject: ['apiUrl', 'monthList', 'periodOptions'],
+  setup() {
+    const insectFormRef = ref(null)
+    const insectFormData = reactive({
+      name: '',
+      price: null,
+      engName: '',
+      jpnName: '',
+      activeTime: { north: [], south: [] },
+      locale: [],
+      period: '',
+      periodStart: '',
+      periodEnd: '',
+      weatherCondition: '',
+      unlockCondition: '',
+      elseCondition: [],
+      rarity: '',
+      introduction: '',
+      photoSrc: '',
+    })
+
+    const apiOption = {
+      getListApi: getInsects,
+      getInfoApi: getInsect,
+      deleteApi: deleteInsect,
+      addApi: addInsect,
+    }
+    const mixProps = useMix(apiOption, insectFormRef, insectFormData)
+
+    const localeList = ref([])
+    const rarityList = ref([])
+    const unlockConditionList = ref([])
+    const getOptions = () => {
+      getOption('insectLocale', list => {
+        localeList.value = list
+      })
+      getOption('rarity', list => {
+        rarityList.value = list
+      })
+      getOption('insectUnlock', list => {
+        unlockConditionList.value = list
+      })
+    }
+
+    onMounted(getOptions)
+
+    const { selectAll } = useSelectMonth(insectFormData)
+
+    const beforePostProcess = () => usePeriodProcess(insectFormData)
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newInsect: {
-        name: '',
-        price: null,
-        engName: '',
-        jpnName: '',
-        activeTime: { north: [], south: [] },
-        locale: [],
-        period: '',
-        periodStart: '',
-        periodEnd: '',
-        weatherCondition: '',
-        unlockCondition: '',
-        elseCondition: [],
-        rarity: '',
-        introduction: '',
-        photoSrc: '',
-      },
-      oldOptions: {
-        north: [],
-        south: [],
-      },
-      periodOptions: { start: '01:00', step: '1:00', end: '24:00' },
-      localeList: [],
-      weatherList: [
-        { text: '无限制', value: '' },
-        { text: '雨雪天除外', value: '雨雪天除外' },
-      ],
-      monthList: [
-        { text: '全选', value: '全年' },
-        { text: '一月', value: '1月' },
-        { text: '二月', value: '2月' },
-        { text: '三月', value: '3月' },
-        { text: '四月', value: '4月' },
-        { text: '五月', value: '5月' },
-        { text: '六月', value: '6月' },
-        { text: '七月', value: '7月' },
-        { text: '八月', value: '8月' },
-        { text: '九月', value: '9月' },
-        { text: '十月', value: '10月' },
-        { text: '十一月', value: '11月' },
-        { text: '十二月', value: '12月' },
-      ],
-      unlockConditionList: [],
-      rarityList: [],
-      newInsectRules: {
+      ...mixProps,
+      insectFormRef,
+      insectFormData,
+      insectFormRules: {
         name: [
           { required: true, message: '请输入昆虫名称', trigger: 'blur' },
           {
@@ -502,83 +491,23 @@ export default {
           },
         ],
       },
-      multipleSelection: [],
+      weatherList: [
+        { text: '无限制', value: '' },
+        { text: '雨雪天除外', value: '雨雪天除外' },
+      ],
+      localeList,
+      rarityList,
+      unlockConditionList,
+      selectAll,
+      beforePostProcess,
     }
   },
-  computed: {},
-  created() {
-    this.fetchData()
-    this.getOptions()
-  },
   methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getInsects, this)
-    },
-    getOptions() {
-      getOption('insectLocale', list => {
-        this.localeList = list
-      })
-      getOption('rarity', list => {
-        this.rarityList = list
-      })
-      getOption('insectUnlock', list => {
-        this.unlockConditionList = list
-      })
-    },
     dialogAddClose() {
-      this.$refs.newInsectRef.resetFields()
       this.oldOptions.north = []
       this.oldOptions.south = []
-      delete this.newInsect._id
-      delete this.newInsect.__v
-    },
-    selectAll(val, prop) {
-      const allValues = []
-      for (const item of this.monthList) {
-        allValues.push(item.value)
-      }
-      const oldVal =
-        this.oldOptions[prop].length === 0 ? [] : this.oldOptions[prop][1]
-      if (val.includes('全年')) this.newInsect.activeTime[prop] = allValues
-      if (oldVal.includes('全年') && !val.includes('全年'))
-        this.newInsect.activeTime[prop] = []
-      if (oldVal.includes('全年') && val.includes('全年')) {
-        const index = val.indexOf('全年')
-        val.splice(index, 1)
-        this.newInsect.activeTime[prop] = val
-      }
-      if (!oldVal.includes('全年') && !val.includes('全年')) {
-        if (val.length === allValues.length - 1)
-          this.newInsect.activeTime[prop] = ['全年'].concat(val)
-      }
-      this.oldOptions[prop][1] = this.newInsect.activeTime[prop]
-    },
-    postInsect() {
-      const startPeriod =
-        this.newInsect.periodStart.indexOf('0') === 0
-          ? this.newInsect.periodStart.substring(1, 2)
-          : this.newInsect.periodStart.substring(0, 2)
-      const endPeriod =
-        this.newInsect.periodEnd.indexOf('0') === 0
-          ? this.newInsect.periodEnd.substring(1, 2)
-          : this.newInsect.periodEnd.substring(0, 2)
-      this.newInsect.period = startPeriod + '点-' + endPeriod + '点'
-      this.commonApi.postForm('insect', addInsect, this)
-    },
-    handleEdit(id) {
-      this.commonApi.openEditForm(id, 'insect', getInsect, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteInsect, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteInsect,
-        this.fetchData
-      )
     },
   },
-}
+})
 </script>
 <style scoped></style>

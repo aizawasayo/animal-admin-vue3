@@ -10,7 +10,7 @@
     >
       上传图片
     </el-button>
-    <el-dialog :visible.sync="dialogVisible">
+    <el-dialog v-model="dialogVisible">
       <el-upload
         name="photoSrc"
         multiple
@@ -32,91 +32,98 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { defineComponent, ref, computed, reactive, inject } from 'vue'
+import { useStore } from 'vuex'
+import { ElMessage } from 'element-plus'
 
-export default {
-  name: 'EditorSlideUpload',
+export default defineComponent({
+  name: 'EditorImage',
   props: {
     color: {
       type: String,
-      default: '#1890ff',
+      default: '#4FC08D',
     },
   },
-  data() {
-    return {
-      dialogVisible: false,
-      listObj: {},
-      fileList: [],
+  setup(props, { emit }) {
+    const store = useStore()
+    const dialogVisible = ref(false)
+    const listObj = reactive({})
+    const fileList = ref([])
+    const apiUrl = inject('apiUrl')
+
+    const checkAllSuccess = () => {
+      return Object.keys(listObj).every(item => listObj[item].hasSuccess)
     }
-  },
-  computed: {
-    ...mapGetters(['uploadUrl']),
-  },
-  methods: {
-    checkAllSuccess() {
-      return Object.keys(this.listObj).every(
-        item => this.listObj[item].hasSuccess
-      )
-    },
-    handleSubmit() {
-      const arr = Object.keys(this.listObj).map(v => this.listObj[v])
-      if (!this.checkAllSuccess()) {
-        this.$message.warning(
+    const handleSubmit = () => {
+      const arr = Object.keys(listObj).map(v => listObj[v])
+      if (!checkAllSuccess()) {
+        ElMessage.warning(
           '请等待所有图片上传成功。如果有网络问题，请刷新页面并重新上传!'
         )
         return
       }
-      this.$emit('successCBK', arr)
-      this.listObj = {}
-      this.fileList = []
-      this.dialogVisible = false
-    },
-    handleSuccess(response, file) {
+      emit('successCBK', arr)
+      Object.keys(listObj).map(key => {
+        delete listObj[key]
+      })
+      fileList.value = []
+      dialogVisible.value = false
+    }
+    const handleSuccess = (response, file) => {
       let fileSrc = response.data[0].path
       fileSrc = fileSrc.replace('/public', '')
       const uid = file.uid
-      const objKeyArr = Object.keys(this.listObj)
+      const objKeyArr = Object.keys(listObj)
       for (let i = 0, len = objKeyArr.length; i < len; i++) {
-        if (this.listObj[objKeyArr[i]].uid === uid) {
-          // this.listObj[objKeyArr[i]].url = 'http://106.54.168.208:1016' + fileSrc
-          this.listObj[objKeyArr[i]].url =
-            process.env.VUE_APP_REAL_API + fileSrc
-          this.listObj[objKeyArr[i]].hasSuccess = true
+        if (listObj[objKeyArr[i]].uid === uid) {
+          // listObj[objKeyArr[i]].url = 'http://106.54.168.208:1016' + fileSrc
+          listObj[objKeyArr[i]].url = apiUrl + fileSrc
+          listObj[objKeyArr[i]].hasSuccess = true
           return
         }
       }
-    },
-    handleRemove(file) {
+    }
+    const handleRemove = file => {
       const uid = file.uid
-      const objKeyArr = Object.keys(this.listObj)
+      const objKeyArr = Object.keys(listObj)
       for (let i = 0, len = objKeyArr.length; i < len; i++) {
-        if (this.listObj[objKeyArr[i]].uid === uid) {
-          delete this.listObj[objKeyArr[i]]
+        if (listObj[objKeyArr[i]].uid === uid) {
+          delete listObj[objKeyArr[i]]
           return
         }
       }
-    },
-    beforeUpload(file) {
-      const _self = this
+    }
+    const beforeUpload = file => {
       const _URL = window.URL || window.webkitURL
       const fileName = file.uid
-      this.listObj[fileName] = {}
+      listObj[fileName] = {}
       return new Promise((resolve, reject) => {
         const img = new Image()
         img.src = _URL.createObjectURL(file)
         img.onload = function () {
-          _self.listObj[fileName] = {
+          listObj[fileName] = {
             hasSuccess: false,
             uid: file.uid,
-            width: this.width,
-            height: this.height,
+            width: props.width,
+            height: props.height,
           }
         }
         resolve(true)
       })
-    },
+    }
+    return {
+      dialogVisible,
+      listObj,
+      fileList,
+      uploadUrl: computed(() => store.getters.uploadUrl),
+      checkAllSuccess,
+      handleSubmit,
+      handleSuccess,
+      handleRemove,
+      beforeUpload,
+    }
   },
-}
+})
 </script>
 
 <style lang="scss" scoped>

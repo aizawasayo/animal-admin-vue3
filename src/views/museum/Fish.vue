@@ -32,12 +32,7 @@
       @filter-change="filters => filterChange(filters)"
       @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="50">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -388,7 +383,11 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handlePost">确 定</el-button>
+          <el-button
+            type="primary"
+            @click="handlePost(false, beforePostProcess)"
+            >确 定</el-button
+          >
         </div>
       </template>
     </el-dialog>
@@ -396,14 +395,16 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive, onMounted, computed, watch } from 'vue'
+import { defineComponent, ref, reactive, onMounted } from 'vue'
 import getOption from '@utils/get-option'
 import { getFishes, addFish, getFish, deleteFish } from '@api/fish'
 import useMix from '@composables/useMix'
+import useSelectMonth from '@composables/useSelectMonth'
+import usePeriodProcess from '@composables/usePeriodProcess'
 
 export default defineComponent({
   name: 'Fish',
-  inject: ['apiUrl'],
+  inject: ['apiUrl', 'monthList', 'periodOptions'],
   setup() {
     const fishFormRef = ref(null)
     const fishFormData = reactive({
@@ -423,24 +424,18 @@ export default defineComponent({
       photoSrc: '',
     })
 
-    const localeList = ref([])
-    const shadowList = ref([])
-    const rarityList = ref([])
-    const unlockConditionList = ref([])
-
     const apiOption = {
       getListApi: getFishes,
       getInfoApi: getFish,
       deleteApi: deleteFish,
       addApi: addFish,
     }
-
-    const oldOptions = reactive({
-      north: [],
-      south: [],
-    })
-
     const mixProps = useMix(apiOption, fishFormRef, fishFormData)
+
+    const localeList = ref([])
+    const shadowList = ref([])
+    const rarityList = ref([])
+    const unlockConditionList = ref([])
 
     const getOptions = () => {
       getOption('fishLocale', list => {
@@ -456,52 +451,17 @@ export default defineComponent({
         unlockConditionList.value = list
       })
     }
-    onMounted(() => {
-      getOptions()
-    })
 
-    watch([fishFormData.periodStart, fishFormData.periodEnd], val => {
-      const startPeriod =
-        fishFormData.periodStart.indexOf('0') === 0
-          ? fishFormData.periodStart.substring(1, 2)
-          : fishFormData.periodStart.substring(0, 2)
-      const endPeriod =
-        fishFormData.periodEnd.indexOf('0') === 0
-          ? fishFormData.periodEnd.substring(1, 2)
-          : fishFormData.periodEnd.substring(0, 2)
-      fishFormData.period = startPeriod + '点-' + endPeriod + '点'
-    })
+    onMounted(getOptions)
 
-    const selectAll = (val, prop) => {
-      const allValues = []
-      for (const item of this.monthList) {
-        allValues.push(item.value)
-      }
-      const oldVal = oldOptions[prop].length === 0 ? [] : oldOptions[prop][1]
-      if (val.includes('全年')) fishFormData.activeTime[prop] = allValues
-      if (oldVal.includes('全年') && !val.includes('全年'))
-        fishFormData.activeTime[prop] = []
-      if (oldVal.includes('全年') && val.includes('全年')) {
-        const index = val.indexOf('全年')
-        val.splice(index, 1)
-        fishFormData.activeTime[prop] = val
-      }
-      if (!oldVal.includes('全年') && !val.includes('全年')) {
-        if (val.length === allValues.length - 1)
-          fishFormData.activeTime[prop] = ['全年'].concat(val)
-      }
-      oldOptions[prop][1] = this.fishFormData.activeTime[prop]
-    }
+    const { selectAll } = useSelectMonth(fishFormData)
+
+    const beforePostProcess = () => usePeriodProcess(fishFormData)
+
     return {
       ...mixProps,
       fishFormRef,
       fishFormData,
-      isSale,
-      localeList,
-      shadowList,
-      unlockConditionList,
-      rarityList,
-      selectAll,
       fishFormRules: {
         name: [
           { required: true, message: '请输入鱼类名称', trigger: 'blur' },
@@ -514,22 +474,12 @@ export default defineComponent({
         ],
         price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
       },
-      periodOptions: { start: '01:00', step: '1:00', end: '24:00' },
-      monthList: [
-        { text: '全选', value: '全年' },
-        { text: '一月', value: '1月' },
-        { text: '二月', value: '2月' },
-        { text: '三月', value: '3月' },
-        { text: '四月', value: '4月' },
-        { text: '五月', value: '5月' },
-        { text: '六月', value: '6月' },
-        { text: '七月', value: '7月' },
-        { text: '八月', value: '8月' },
-        { text: '九月', value: '9月' },
-        { text: '十月', value: '10月' },
-        { text: '十一月', value: '11月' },
-        { text: '十二月', value: '12月' },
-      ],
+      localeList,
+      shadowList,
+      unlockConditionList,
+      rarityList,
+      selectAll,
+      beforePostProcess,
     }
   },
 })

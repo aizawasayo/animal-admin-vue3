@@ -8,16 +8,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -76,10 +71,15 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { defineComponent, reactive, watch, toRefs } from 'vue'
+import { useStore } from 'vuex'
+import useDelete from '@composables/useDelete'
+import useFilter from '@composables/useFilter'
+import useList from '@composables/useList'
+import useSort from '@composables/useSort'
 import { getComments, deleteComment } from '@api/comment'
 
-export default {
+export default defineComponent({
   name: 'CommentList',
   props: {
     type: {
@@ -91,58 +91,49 @@ export default {
       default: '',
     },
   },
-  data() {
+  setup(props) {
+    const { type, queryKey } = toRefs(props)
+    const store = useStore()
+    const userId = store.getters.userId
+
+    const { sort, sortJson, sortChange } = useSort({ created_time: 1 }) // 列表排序
+
+    const listQuery = reactive({
+      query: queryKey.value,
+      page: 1,
+      pageSize: 10,
+      sort,
+      sortJson,
+    })
+
+    watch(queryKey, val => (listQuery.query = val))
+
+    const { list, total, listLoading, refreshList } = useList(
+      listQuery,
+      getComments,
+      type
+    )
+
+    const { filterChange } = useFilter(listQuery) // 列表筛选
+
+    const { selectionChange, handleDelete, multiDelete } = useDelete(
+      deleteComment,
+      refreshList,
+      type
+    )
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: this.queryKey,
-        page: 1,
-        pageSize: 10,
-        sortJson: { created_time: 1 },
-        sort: '',
-      },
-      pageSize: [8, 10, 15],
-      total: 0,
-      emptyText: '没有相关数据',
-      multipleSelection: [],
+      list,
+      total,
+      listLoading,
+      listQuery,
+      refreshList,
+      filterChange,
+      sortChange,
+      selectionChange,
+      handleDelete,
+      multiDelete,
     }
   },
-  computed: {
-    ...mapGetters(['userId']),
-  },
-  watch: {
-    queryKey(newVal) {
-      this.queryInfo.query = newVal
-    },
-  },
-  created() {
-    this.fetchData()
-  },
-  methods: {
-    fetchData(param) {
-      this.listLoading = true
-      if (param === 'refresh') {
-        this.queryInfo.page = 1
-      }
-      getComments(this.type, this.queryInfo)
-        .then(response => {
-          this.list = response.data.list
-          this.total = response.data.total || 0
-          this.listLoading = false
-        })
-        .catch(err => this.$message.error(err.message))
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteComment, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteComment,
-        this.fetchData
-      )
-    },
-  },
-}
+})
 </script>

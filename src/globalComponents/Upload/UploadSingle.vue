@@ -13,20 +13,20 @@
       with-credentials
       :class="uploadClass"
     >
-      <div v-if="!drag">
+      <template v-if="!drag">
         <el-button v-if="imageUrl" size="small" type="success"
           >已上传，可点击修改</el-button
         >
         <el-button size="small" type="primary" v-else
           ><i class="el-icon-upload el-icon--left"></i>点击上传</el-button
         >
-      </div>
-      <div v-if="drag">
+      </template>
+      <template v-if="drag">
         <i class="el-icon-upload" />
         <div class="el-upload__text">
           将单张图片拖到<br />此处，或<em>点击上传</em>
         </div>
-      </div>
+      </template>
       <template #tip>
         <div class="el-upload__tip">
           <span style="color: #f56c6c"
@@ -41,7 +41,7 @@
         :append-to-body="true"
         :width="dialogWidth"
       >
-        <img style="width: '100%'" :src="imageUrl" alt="" />
+        <el-image style="width: 100%" :src="imageUrl" fit="fill"></el-image>
       </el-dialog>
     </div>
     <div

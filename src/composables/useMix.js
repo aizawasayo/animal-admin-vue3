@@ -6,9 +6,8 @@ import usePostForm from '@composables/usePostForm'
 import useSort from '@composables/useSort'
 import { computed, nextTick, reactive, unref } from 'vue'
 
-export default function useMix(api, formRef, formData) {
+export default function useMix(api, formRef, formData, uploadRef) {
   const { sort, sortJson, sortChange } = useSort() // 列表排序
-
   // 分页请求参数
   const listQuery = reactive({
     query: '',
@@ -33,8 +32,8 @@ export default function useMix(api, formRef, formData) {
     clearForm,
   } = useEditDialog(formRef, formData)
 
-  const handleEdit = id => {
-    openEditDialog(id, api.getInfoApi)
+  const handleEdit = (id, callback) => {
+    openEditDialog(id, api.getInfoApi, callback)
   }
 
   // 编辑/新增相关
@@ -50,11 +49,14 @@ export default function useMix(api, formRef, formData) {
   const { postForm, postUploadForm } = usePostForm(
     formRef,
     formData,
-    unref(isUserPage)
+    unref(isUserPage),
+    uploadRef
   )
 
-  // 提交表单，批量上传参数传 true，否则不传
-  const handlePost = isMulti => {
+  // 提交表单
+  // @isMulti：批量上传参数传 true，否则不传/false
+  // @dataProcess：上传之前的表单数据处理
+  const handlePost = (isMulti, dataProcess) => {
     const postFun = isMulti === true ? postUploadForm : postForm
     postFun(
       unref(postApi),
@@ -67,7 +69,8 @@ export default function useMix(api, formRef, formData) {
       },
       () => {
         if (formData.startDate) formData.startDate = ''
-      }
+      },
+      dataProcess
     )
   }
 

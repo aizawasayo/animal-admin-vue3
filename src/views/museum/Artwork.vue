@@ -32,12 +32,7 @@
       @filter-change="filters => filterChange(filters)"
       @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -196,7 +191,7 @@
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
               <upload-multi
-                ref="upload"
+                ref="uploadRef"
                 drag
                 :list="artworkFormData.photoSrc"
               />
@@ -225,7 +220,9 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="handlePost(true)">确 定</el-button>
+          <el-button type="primary" @click="handlePost(true, beforePostProcess)"
+            >确 定</el-button
+          >
         </div>
       </template>
     </el-dialog>
@@ -233,7 +230,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, reactive, onMounted, computed, watch } from 'vue'
+import { defineComponent, ref, reactive, onMounted, computed } from 'vue'
 import {
   getArtworkList,
   addArtwork,
@@ -262,37 +259,36 @@ export default defineComponent({
       photoSrc: [],
     })
 
-    const sizeList = ref([])
     const apiOption = {
       getListApi: getArtworkList,
       getInfoApi: getArtwork,
       deleteApi: deleteArtwork,
       addApi: addArtwork,
     }
+    const uploadRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      artworkFormRef,
+      artworkFormData,
+      uploadRef
+    )
 
-    const mixProps = useMix(apiOption, bannerFormRef, bannerFormData)
+    const sizeList = ref([])
 
     const getOptions = () => {
       getOption('size', list => {
         sizeList.value = list
       })
     }
-    onMounted(() => {
-      getOptions()
-    })
+
+    onMounted(getOptions)
 
     const isSale = computed(() => artworkFormData.orderType === '订购')
 
-    watch(
-      artworkFormData.fakeCharacter,
-      val => (artworkFormData.hasFake = val ? true : false)
-    )
     return {
       ...mixProps,
       artworkFormRef,
       artworkFormData,
-      isSale,
-      sizeList,
       artworkFormRules: {
         name: [
           { required: true, message: '请输入服饰名', trigger: 'blur' },
@@ -304,6 +300,13 @@ export default defineComponent({
           },
         ],
       },
+      uploadRef,
+      isSale,
+      sizeList,
+      beforePostProcess: formData =>
+        formData.fakeCharacter
+          ? (formData.hasFake = true)
+          : (formData.hasFake = false),
     }
   },
 })

@@ -4,27 +4,41 @@
       来源({{ platforms.length }})
       <i class="el-icon-caret-bottom el-icon--right" />
     </el-button>
-    <el-dropdown-menu slot="dropdown" class="no-border">
-      <el-checkbox-group v-model="platforms" style="padding: 5px 15px">
-        <el-checkbox v-for="item in platformsOptions" :label="item.key">
-          {{ item.name }}
-        </el-checkbox>
-      </el-checkbox-group>
-    </el-dropdown-menu>
+    <template #dropdown>
+      <el-dropdown-menu class="no-border">
+        <el-checkbox-group v-model="platforms" style="padding: 5px 15px">
+          <el-checkbox
+            v-for="item in platformsOptions"
+            :label="item.key"
+            :key="item.key"
+          >
+            {{ item.name }}
+          </el-checkbox>
+        </el-checkbox-group>
+      </el-dropdown-menu>
+    </template>
   </el-dropdown>
 </template>
 
 <script>
-export default {
+import { computed, defineComponent } from 'vue'
+
+export default defineComponent({
   props: {
-    value: {
+    modelValue: {
+      type: Array,
       required: true,
       default: () => [],
-      type: Array,
     },
   },
-  data() {
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    const platforms = computed({
+      get: () => props.modelValue,
+      set: val => emit('update:modelValue', val),
+    })
     return {
+      platforms,
       platformsOptions: [
         { key: '动森研究所', name: '动森研究所' },
         { key: '动森生活家', name: '动森生活家' },
@@ -34,16 +48,5 @@ export default {
       ],
     }
   },
-  emits: ['input'],
-  computed: {
-    platforms: {
-      get() {
-        return this.value
-      },
-      set(val) {
-        this.$emit('input', val)
-      },
-    },
-  },
-}
+})
 </script>

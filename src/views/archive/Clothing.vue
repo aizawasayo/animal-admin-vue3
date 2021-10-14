@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入服饰关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="服饰" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('clothing', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加服饰</el-button
             >
           </el-col>
@@ -40,16 +25,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -221,32 +201,32 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newClothingRef"
+        ref="clothingFormRef"
         :inline="false"
-        :model="newClothing"
-        :rules="newClothingRules"
+        :model="clothingFormData"
+        :rules="clothingFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="8">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="newClothing.name" />
+              <el-input v-model="clothingFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="英文名" prop="engName">
-              <el-input v-model="newClothing.engName" />
+              <el-input v-model="clothingFormData.engName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newClothing.jpnName" />
+              <el-input v-model="clothingFormData.jpnName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="类型" prop="type" required>
               <el-select
-                v-model="newClothing.type"
+                v-model="clothingFormData.type"
                 collapse-tags
                 placeholder="请选择种类"
               >
@@ -261,13 +241,13 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="价格" prop="price">
-              <el-input v-model.number="newClothing.price" />
+              <el-input v-model.number="clothingFormData.price" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="颜色" prop="color">
               <el-select
-                v-model="newClothing.color"
+                v-model="clothingFormData.color"
                 multiple
                 collapse-tags
                 placeholder="请选择颜色"
@@ -284,7 +264,7 @@
           <el-col :span="8">
             <el-form-item label="风格" prop="style">
               <el-select
-                v-model="newClothing.style"
+                v-model="clothingFormData.style"
                 multiple
                 collapse-tags
                 placeholder="请选择风格"
@@ -301,7 +281,7 @@
           <el-col :span="8">
             <el-form-item label="主题" prop="theme">
               <el-select
-                v-model="newClothing.theme"
+                v-model="clothingFormData.theme"
                 multiple
                 collapse-tags
                 placeholder="请选择主题"
@@ -318,7 +298,7 @@
           <el-col :span="8">
             <el-form-item label="订购类型" prop="orderType">
               <el-select
-                v-model="newClothing.orderType"
+                v-model="clothingFormData.orderType"
                 placeholder="请选择订购类型"
               >
                 <el-option
@@ -333,7 +313,7 @@
           <el-col :span="8">
             <el-form-item label="来源(多选)" prop="channels">
               <el-select
-                v-model="newClothing.channels"
+                v-model="clothingFormData.channels"
                 multiple
                 collapse-tags
                 placeholder="请选择获取途径"
@@ -350,7 +330,7 @@
           <el-col v-show="isSale" :span="8">
             <el-form-item label="售卖时间" prop="saleTime">
               <el-select
-                v-model="newClothing.saleTime"
+                v-model="clothingFormData.saleTime"
                 placeholder="请选择售卖时间"
               >
                 <el-option
@@ -365,7 +345,7 @@
           <el-col :span="8">
             <el-form-item label="所属活动" prop="activity">
               <el-select
-                v-model="newClothing.activity"
+                v-model="clothingFormData.activity"
                 placeholder="请选择所属活动"
               >
                 <el-option
@@ -379,13 +359,17 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
-              <upload-multi ref="upload" drag :list="newClothing.photoSrc" />
+              <upload-multi
+                ref="uploadRef"
+                drag
+                :list="clothingFormData.photoSrc"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="途径说明" prop="channelDetail">
               <el-input
-                v-model="newClothing.channelDetail"
+                v-model="clothingFormData.channelDetail"
                 type="textarea"
                 placeholder="请输入具体途径说明"
               />
@@ -394,15 +378,18 @@
           <el-col :span="24"> </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postClothing">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="handlePost(true)">确 定</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { ref, onMounted, computed, defineComponent, reactive } from 'vue'
 import {
   getClothingList,
   addClothing,
@@ -410,54 +397,84 @@ import {
   deleteClothing,
 } from '@api/clothing'
 import getOption from '@utils/get-option'
-import { ref, onMounted, watch, toRefs, computed } from 'vue'
+import useMix from '@composables/useMix'
 
-export default {
+export default defineComponent({
   name: 'Clothing',
-  data() {
+  inject: ['apiUrl', 'monthList', 'periodOptions'],
+  setup() {
+    const clothingFormRef = ref(null)
+    const clothingFormData = reactive({
+      name: '',
+      engName: '',
+      jpnName: '',
+      price: null,
+      type: '',
+      color: [], // 颜色
+      style: [], // 风格
+      theme: [], // 主题
+      saleTime: '',
+      orderType: '', // 订购类型
+      channels: [], // 获取途径
+      channelDetail: '', // 获取途径详情
+      photoSrc: [],
+      activity: '',
+    })
+    const apiOption = {
+      getListApi: getClothingList,
+      getInfoApi: getClothing,
+      deleteApi: deleteClothing,
+      addApi: addClothing,
+    }
+
+    const uploadRef = ref(null)
+
+    const mixProps = useMix(
+      apiOption,
+      clothingFormRef,
+      clothingFormData,
+      uploadRef
+    )
+
+    const typeList = ref([])
+    const channelList = ref([])
+    const colorList = ref([])
+    const styleList = ref([])
+    const themeList = ref([])
+    const seasonList = ref([])
+    const activityList = ref([])
+
+    const getOptions = () => {
+      getOption('clothingType', list => {
+        typeList.value = list
+      })
+      getOption('clothingChannels', list => {
+        channelList.value = list
+      })
+      getOption('clothingColor', list => {
+        colorList.value = list
+      })
+      getOption('clothingStyle', list => {
+        styleList.value = list
+      })
+      getOption('clothingTheme', list => {
+        themeList.value = list
+      })
+      getOption('activity', list => {
+        activityList.value = list
+      })
+      getOption('season', list => {
+        seasonList.value = list
+      })
+    }
+
+    onMounted(getOptions)
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1, // 当前的页数
-        pageSize: 10, // 当前每页显示多少条数据
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newClothing: {
-        name: '',
-        engName: '',
-        jpnName: '',
-        price: null,
-        type: '',
-        color: [], // 颜色
-        style: [], // 风格
-        theme: [], // 主题
-        saleTime: '',
-        orderType: '', // 订购类型
-        channels: [], // 获取途径
-        channelDetail: '', // 获取途径详情
-        photoSrc: [],
-        activity: '',
-      },
-      typeList: [],
-      channelList: [],
-      colorList: [],
-      styleList: [],
-      orderTypeList: [
-        { text: '订购', value: '订购' },
-        { text: '不可订购', value: '不可订购' },
-        { text: '里数兑换', value: '里数兑换' },
-        { text: '非卖品', value: '非卖品' },
-      ],
-      themeList: [],
-      seasonList: [],
-      activityList: [],
-      newClothingRules: {
+      ...mixProps,
+      clothingFormRef,
+      clothingFormData,
+      clothingFormRules: {
         name: [
           { required: true, message: '请输入服饰名', trigger: 'blur' },
           {
@@ -468,68 +485,24 @@ export default {
           },
         ],
       },
-      multipleSelection: [],
+      uploadRef,
+      orderTypeList: [
+        { text: '订购', value: '订购' },
+        { text: '不可订购', value: '不可订购' },
+        { text: '里数兑换', value: '里数兑换' },
+        { text: '非卖品', value: '非卖品' },
+      ],
+      typeList,
+      channelList,
+      colorList,
+      styleList,
+      themeList,
+      seasonList,
+      activityList,
+      isSale: computed(() => clothingFormData.orderType === '订购'),
     }
   },
-  computed: {
-    // isNpc() {
-    //   let isNpc = this.newClothing.channels.includes('npc赠送')
-    //   return isNpc
-    // },
-    isSale() {
-      const isSaleBl = this.newClothing.orderType === '订购'
-      return isSaleBl
-    },
-  },
-  created() {
-    this.fetchData()
-    this.getOptions()
-  },
-  methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getClothingList, this)
-    },
-    getOptions() {
-      getOption('clothingType', list => {
-        this.typeList = list
-      })
-      getOption('clothingChannels', list => {
-        this.channelList = list
-      })
-      getOption('clothingColor', list => {
-        this.colorList = list
-      })
-      getOption('clothingStyle', list => {
-        this.styleList = list
-      })
-      getOption('clothingTheme', list => {
-        this.themeList = list
-      })
-      getOption('activity', list => {
-        this.activityList = list
-      })
-      getOption('season', list => {
-        this.seasonList = list
-      })
-    },
-    postClothing() {
-      this.commonApi.postUploadForm('clothing', addClothing, this)
-    },
-    handleEdit(id) {
-      this.commonApi.openEditForm(id, 'clothing', getClothing, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteClothing, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteClothing,
-        this.fetchData
-      )
-    },
-  },
-}
+})
 </script>
 
 <style scoped></style>

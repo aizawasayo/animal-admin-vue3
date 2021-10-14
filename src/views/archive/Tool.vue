@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入工具关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="工具" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('tool', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加工具</el-button
             >
           </el-col>
@@ -40,16 +25,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -168,16 +148,16 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newToolRef"
+        ref="toolFormRef"
         :inline="false"
-        :model="newTool"
-        :rules="newToolRules"
+        :model="toolFormData"
+        :rules="toolFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="24">
             <el-form-item label="可否DIY" prop="isDIY" required>
-              <el-radio-group v-model="newTool.isDIY" @change="changeDIY">
+              <el-radio-group v-model="toolFormData.isDIY" @change="changeDIY">
                 <el-radio :label="true">可以DIY制作</el-radio>
                 <el-radio :label="false">不可以DIY制作</el-radio>
               </el-radio-group>
@@ -185,33 +165,33 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="工具名称" prop="name" required>
-              <el-input v-model="newTool.name" />
+              <el-input v-model="toolFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="英文名" prop="engName">
-              <el-input v-model="newTool.engName" />
+              <el-input v-model="toolFormData.engName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newTool.jpnName" />
+              <el-input v-model="toolFormData.jpnName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="价格" prop="price">
-              <el-input v-model.number="newTool.price" />
+              <el-input v-model.number="toolFormData.price" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="耐久度" prop="durability">
-              <el-input v-model.number="newTool.durability" />
+              <el-input v-model.number="toolFormData.durability" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="来源(多选)" prop="channels">
               <el-select
-                v-model="newTool.channels"
+                v-model="toolFormData.channels"
                 multiple
                 collapse-tags
                 placeholder="请选择获取途径"
@@ -228,7 +208,7 @@
           <el-col :span="8">
             <el-form-item label="所属活动" prop="activity">
               <el-select
-                v-model="newTool.activity"
+                v-model="toolFormData.activity"
                 placeholder="请选择所属活动"
               >
                 <el-option
@@ -243,7 +223,7 @@
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
               <upload-single
-                v-model="newTool.photoSrc"
+                v-model="toolFormData.photoSrc"
                 dialog-width="30%"
                 drag
               />
@@ -252,7 +232,7 @@
           <el-col :span="24">
             <el-form-item label="途径说明" prop="channelDetail">
               <el-input
-                v-model="newTool.channelDetail"
+                v-model="toolFormData.channelDetail"
                 type="textarea"
                 placeholder="请输入具体途径说明"
               />
@@ -260,111 +240,88 @@
           </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postTool">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="handlePost">确 定</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { computed, defineComponent, ref, reactive, onMounted } from 'vue'
 import getOption from '@utils/get-option'
 import { getTools, addTool, getTool, deleteTool } from '@api/tool'
+import useMix from '@composables/useMix'
 
-export default {
+export default defineComponent({
   name: 'Tool',
-  data() {
+  inject: ['apiUrl'],
+  setup() {
+    const toolFormRef = ref(null)
+    const toolFormData = reactive({
+      name: '',
+      price: null,
+      engName: '',
+      jpnName: '',
+      durability: null,
+      isDIY: null,
+      activity: '',
+      channels: [],
+      channelDetail: '',
+      photoSrc: '',
+    })
+    const apiOption = {
+      getListApi: getTools,
+      getInfoApi: getTool,
+      deleteApi: deleteTool,
+      addApi: addTool,
+    }
+    const mixProps = useMix(apiOption, toolFormRef, toolFormData)
+
+    const channelList = ref([])
+    const activityList = ref([])
+
+    const getOptions = () => {
+      getOption('toolChannels', list => {
+        channelList.value = list
+      })
+      getOption('activity', list => {
+        activityList.value = list
+      })
+    }
+
+    onMounted(getOptions)
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
+      ...mixProps,
+      toolFormRef,
+      toolFormData,
+      toolFormRules: {
+        name: [{ required: true, message: '请填写工具名', trigger: 'blur' }],
       },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newTool: {
-        name: '',
-        price: null,
-        engName: '',
-        jpnName: '',
-        durability: null,
-        isDIY: null,
-        activity: '',
-        channels: [],
-        channelDetail: '',
-        photoSrc: '',
-      },
+      channelList,
+      activityList,
       isDIYList: [
         { text: '可以DIY制作', value: true },
         { text: '不可以DIY制作', value: false },
       ],
-      channelList: [],
-      activityList: [],
-      newToolRules: {
-        name: [{ required: true, message: '请填写工具名', trigger: 'blur' }],
+      isDIYBL: computed(
+        () => toolFormData.isDIY !== null && toolFormData.isDIY === true
+      ),
+      notDIY: computed(
+        () => toolFormData.isDIY !== null && toolFormData.isDIY === false
+      ),
+      changeDIY: val => {
+        val
+          ? toolFormData.channels.push('DIY制作')
+          : (toolFormData.channels = [])
       },
-      multipleSelection: [],
     }
   },
-  computed: {
-    isDIYBL() {
-      let bl = false
-      if (this.newTool.isDIY !== null && this.newTool.isDIY === true) bl = true
-      return bl
-    },
-    notDIY() {
-      let bl = false
-      if (this.newTool.isDIY !== null && this.newTool.isDIY === false) bl = true
-      return bl
-    },
-  },
-  created() {
-    this.fetchData()
-    this.getOptions()
-  },
-  methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getTools, this)
-    },
-    getOptions() {
-      getOption('toolChannels', list => {
-        this.channelList = list
-      })
-      getOption('activity', list => {
-        this.activityList = list
-      })
-    },
-    postTool() {
-      this.commonApi.postForm('tool', addTool, this)
-    },
-    handleEdit(id) {
-      this.commonApi.openEditForm(id, 'tool', getTool, this)
-    },
-    changeDIY(val) {
-      if (val) {
-        this.newTool.channels.push('DIY制作')
-      } else {
-        this.newTool.channels = []
-      }
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteTool, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteTool,
-        this.fetchData
-      )
-    },
-  },
-}
+})
 </script>
 
 <style scoped></style>

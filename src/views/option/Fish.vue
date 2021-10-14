@@ -1,31 +1,43 @@
 <template>
-  <option-index :tab-options="tabOptions" :active-tab="activeName"></option-index>
+  <option-index
+    :tab-options="tabOptions"
+    :active-tab="activeName"
+  ></option-index>
 </template>
 
 <script>
-import OptionIndex from '../components/OptionIndex'
+import { defineComponent, ref, watch, onBeforeMount } from 'vue'
+import { useRoute } from 'vue-router'
+import OptionIndex from './components/OptionIndex.vue'
 
-export default {
+export default defineComponent({
   name: 'FishSetting',
   components: { OptionIndex },
-  data() {
+  setup() {
+    const route = useRoute()
+    const activeName = ref('fishLocale')
+
+    onBeforeMount(() => {
+      if (route.query.tab) activeName.value = route.query.tab
+    })
+
+    watch(
+      () => route.query.tab,
+      val => {
+        if (val) activeName.value = val
+      }
+    )
+
     return {
+      activeName,
       tabOptions: [
         { label: '鱼出现场所', key: 'fishLocale' },
         { label: '鱼影大小', key: 'shadow' },
-        { label: '解锁数量要求', key: 'fishUnlock' }
+        { label: '解锁数量要求', key: 'fishUnlock' },
       ],
-      activeName: 'fishLocale'
     }
   },
-  created() {
-    const tab = this.$route.query.tab
-    if (tab) {
-      this.activeName = tab
-    }
-  },
-  methods: {}
-}
+})
 </script>
 
 <style scoped></style>

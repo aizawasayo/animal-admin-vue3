@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入素材名称关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="素材" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('material', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加素材</el-button
             >
           </el-col>
@@ -40,16 +25,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -157,37 +137,37 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newMaterialRef"
+        ref="materialFormRef"
         :inline="false"
-        :model="newMaterial"
-        :rules="newMaterialRules"
+        :model="materialFormData"
+        :rules="materialFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="8">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="newMaterial.name" />
+              <el-input v-model="materialFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="英文名" prop="engName">
-              <el-input v-model="newMaterial.engName" />
+              <el-input v-model="materialFormData.engName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newMaterial.jpnName" />
+              <el-input v-model="materialFormData.jpnName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="价格" prop="price">
-              <el-input v-model.number="newMaterial.price" />
+              <el-input v-model.number="materialFormData.price" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="所属活动" prop="activity">
               <el-select
-                v-model="newMaterial.activity"
+                v-model="materialFormData.activity"
                 placeholder="请选择所属活动"
               >
                 <el-option
@@ -202,7 +182,7 @@
           <el-col :span="8">
             <el-form-item label="所属季节" prop="season">
               <el-select
-                v-model="newMaterial.season"
+                v-model="materialFormData.season"
                 multiple
                 placeholder="请选择出现季节"
               >
@@ -218,7 +198,7 @@
           <el-col :span="8">
             <el-form-item label="来源(多选)" prop="channels">
               <el-select
-                v-model="newMaterial.channels"
+                v-model="materialFormData.channels"
                 multiple
                 collapse-tags
                 placeholder="请选择获取途径"
@@ -234,28 +214,31 @@
           </el-col>
           <el-col :span="8">
             <el-form-item label="堆叠数量" prop="maxNum">
-              <el-input v-model.number="newMaterial.maxNum" />
+              <el-input v-model.number="materialFormData.maxNum" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
               <upload-single
-                v-model="newMaterial.photoSrc"
+                v-model="materialFormData.photoSrc"
                 dialog-width="30%"
               />
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postMaterial">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="handlePost">确 定</el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { defineComponent, ref, reactive, onMounted } from 'vue'
 import {
   getMaterials,
   addMaterial,
@@ -263,36 +246,64 @@ import {
   deleteMaterial,
 } from '@api/material'
 import getOption from '@utils/get-option'
+import useMix from '@composables/useMix'
 
-export default {
+export default defineComponent({
   name: 'Material',
-  data() {
+  inject: ['apiUrl'],
+  setup() {
+    const materialFormRef = ref(null)
+    const materialFormData = reactive({
+      name: '',
+      price: null,
+      engName: '',
+      jpnName: '',
+      activity: '',
+      season: [],
+      maxNum: null,
+      channels: [],
+      photoSrc: '',
+    })
+
+    const apiOption = {
+      getListApi: getMaterials,
+      getInfoApi: getMaterial,
+      deleteApi: deleteMaterial,
+      addApi: addMaterial,
+    }
+    const mixProps = useMix(apiOption, materialFormRef, materialFormData)
+
+    const activityList = ref([])
+    const seasonList = ref([])
+
+    const getOptions = () => {
+      getOption('activity', list => {
+        activityList.value = list
+      })
+      getOption('season', list => {
+        seasonList.value = list
+      })
+    }
+
+    onMounted(getOptions)
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
+      ...mixProps,
+      materialFormRef,
+      materialFormData,
+      materialFormRules: {
+        name: [
+          { required: true, message: '请输入素材名字', trigger: 'blur' },
+          {
+            min: 1,
+            max: 16,
+            message: '长度在 2 到 16 个字符',
+            trigger: 'blur',
+          },
+        ],
       },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newMaterial: {
-        name: '',
-        price: null,
-        engName: '',
-        jpnName: '',
-        activity: '',
-        season: [],
-        maxNum: null,
-        channels: [],
-        photoSrc: '',
-      },
-      activityList: [],
-      seasonList: [],
+      activityList,
+      seasonList,
       channelList: [
         { text: '商店购买', value: '商店购买' },
         { text: '狸端机订购', value: '狸端机订购' },
@@ -321,55 +332,9 @@ export default {
         { text: '潜水打捞', value: '潜水打捞' },
         { text: '与阿獭交换帆立贝随机获得', value: '与阿獭交换帆立贝随机获得' },
       ],
-      newMaterialRules: {
-        name: [
-          { required: true, message: '请输入素材名字', trigger: 'blur' },
-          {
-            min: 1,
-            max: 16,
-            message: '长度在 2 到 16 个字符',
-            trigger: 'blur',
-          },
-        ],
-      },
-      multipleSelection: [],
     }
   },
-  computed: {},
-  created() {
-    this.fetchData()
-    this.getOptions()
-  },
-  methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getMaterials, this)
-    },
-    getOptions() {
-      getOption('activity', list => {
-        this.activityList = list
-      })
-      getOption('season', list => {
-        this.seasonList = list
-      })
-    },
-    postMaterial() {
-      this.commonApi.postForm('material', addMaterial, this)
-    },
-    handleEdit(id) {
-      this.commonApi.openEditForm(id, 'material', getMaterial, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteMaterial, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteMaterial,
-        this.fetchData
-      )
-    },
-  },
-}
+})
 </script>
 
 <style scoped></style>

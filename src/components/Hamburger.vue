@@ -17,6 +17,7 @@
 
 <script>
 import { defineComponent } from 'vue'
+
 export default defineComponent({
   name: 'Hamburger',
   props: { isActive: { type: Boolean, default: false } },

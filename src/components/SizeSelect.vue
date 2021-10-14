@@ -21,9 +21,11 @@
 </template>
 
 <script>
-import { computed, getCurrentInstance, nextTick, watch } from 'vue'
+import { computed, getCurrentInstance, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
+
 export default {
   setup() {
     const store = useStore()
@@ -55,7 +57,7 @@ export default {
     const handleSetSize = size => {
       store.dispatch('app/setSize', size)
       refreshView()
-      proxy.$message({
+      ElMessage.success({
         message: '切换成功',
         type: 'success',
       })

@@ -1,0 +1,84 @@
+<template>
+  <div class="dashboard-editor-container">
+    <div class="clearfix">
+      <pan-thumb :image="apiUrl + avatar" style="float: left">
+        Your roles:
+        <span v-for="item in roles" :key="item" class="info-roles">{{
+          item
+        }}</span>
+      </pan-thumb>
+      <github-corner
+        style="position: absolute; top: 0px; border: 0; right: 0"
+      />
+      <div class="info-container">
+        <span class="display_name">{{ username }}</span>
+        <span style="font-size: 20px; padding-top: 20px; display: inline-block"
+          >普通用户的控制台</span
+        >
+      </div>
+    </div>
+    <div>
+      <img :src="emptyGif" class="emptyGif" />
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { computed, defineComponent } from 'vue'
+import PanThumb from '@components/PanThumb.vue'
+import GithubCorner from '@components/GithubCorner.vue'
+import { useStore } from 'vuex'
+export default defineComponent({
+  components: {
+    PanThumb,
+    GithubCorner,
+  },
+  setup() {
+    const emptyGif =
+      'https://wpimg.wallstcn.com/0e03b7da-db9e-4819-ba10-9016ddfdaed3'
+    const store = useStore()
+    return {
+      emptyGif,
+      username: computed(() => store.getters.username),
+      avatar: computed(() => store.getters.avatar),
+      roles: computed(() => store.getters.roles),
+    }
+  },
+})
+</script>
+
+<style lang="scss" scoped>
+.emptyGif {
+  display: block;
+  width: 45%;
+  margin: 0 auto;
+}
+
+.dashboard-editor-container {
+  background-color: #e3e3e3;
+  min-height: 100vh;
+  padding: 50px 60px 0px;
+
+  .info-roles {
+    font-size: 12px;
+    font-weight: 700;
+    color: #333;
+    display: block;
+  }
+
+  .info-container {
+    position: relative;
+    margin-left: 190px;
+    height: 150px;
+    line-height: 200px;
+
+    .display_name {
+      font-size: 48px;
+      line-height: 48px;
+      color: #212121;
+      position: absolute;
+      top: 25px;
+    }
+  }
+}
+</style>

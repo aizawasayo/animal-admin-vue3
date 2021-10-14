@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { scrollTo } from '@/utils/scroll-to'
+import { scrollTo } from '@utils/scroll-to'
 import { computed, onUpdated } from 'vue'
 
 export default {

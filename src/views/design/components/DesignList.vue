@@ -8,16 +8,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -81,15 +76,17 @@
 </template>
 
 <script>
-import { computed, defineComponent } from 'vue'
-import { mapGetters, useStore } from 'vuex'
-import useList from '@composables/useList'
-import useSearch from '@composables/useSearch'
+import { computed, defineComponent, watch, toRefs, reactive } from 'vue'
+import { useStore } from 'vuex'
+import useDelete from '@composables/useDelete'
 import useFilter from '@composables/useFilter'
+import useList from '@composables/useList'
+import useSort from '@composables/useSort'
 import { getDesignList, deleteDesign } from '@api/design'
 
 export default defineComponent({
   name: 'DesignList',
+  inject: ['apiUrl'],
   props: {
     type: {
       type: String,
@@ -104,49 +101,51 @@ export default defineComponent({
     const store = useStore()
     const userId = computed(() => store.getters.userId)
     const roles = computed(() => store.getters.roles)
-    watch(queryKey, newKey => (queryInfo.query = newVal))
-    const filter = useFilter()
-    const search = useSearch()
-    const { list, total } = useList()
-  },
-  data() {
-    return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: this.queryKey,
-        page: 1,
-        pageSize: 10,
-        type: this.type,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      emptyText: '没有相关数据',
-      multipleSelection: [],
-    }
-  },
 
-  created() {
-    // this.fetchData()
-  },
-  methods: {
-    fetchData(param) {
-      if (this.roles.length === 1 && this.roles.includes('normal')) {
-        this.queryInfo.user = this.userId
-      }
-      this.commonApi.getList(param, getDesignList, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteDesign, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteDesign,
-        this.fetchData
-      )
-    },
+    const { type, queryKey } = toRefs(props)
+
+    const { sort, sortJson, sortChange } = useSort()
+
+    const listQuery = reactive({
+      query: queryKey.value,
+      page: 1,
+      pageSize: 10,
+      type: type.value,
+      sort,
+      sortJson,
+    })
+
+    watch(queryKey, val => (listQuery.query = val))
+
+    watch(roles, val => {
+      if (roles.value.length === 1 && roles.value.includes('normal'))
+        listQuery.user = userId.value
+    })
+
+    const { list, total, listLoading, refreshList } = useList(
+      listQuery,
+      getDesignList
+    )
+
+    const { filterChange } = useFilter(listQuery)
+
+    const { selectionChange, handleDelete, multiDelete } = useDelete(
+      deleteDesign,
+      refreshList
+    )
+
+    return {
+      list,
+      total,
+      listLoading,
+      listQuery,
+      refreshList,
+      filterChange,
+      sortChange,
+      selectionChange,
+      handleDelete,
+      multiDelete,
+    }
   },
 })
 </script>

@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入海洋生物关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="海洋生物" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('halobios', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加海洋生物</el-button
             >
           </el-col>
@@ -47,12 +32,7 @@
       @filter-change="filters => filterChange(filters, this)"
       @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="50">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -207,37 +187,37 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newHalobiosRef"
+        ref="halobiosFormRef"
         :inline="false"
-        :model="newHalobios"
-        :rules="newHalobiosRules"
+        :model="halobiosFormData"
+        :rules="halobiosFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="8">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="newHalobios.name" />
+              <el-input v-model="halobiosFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="英文名" prop="engName">
-              <el-input v-model="newHalobios.engName" />
+              <el-input v-model="halobiosFormData.engName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newHalobios.jpnName" />
+              <el-input v-model="halobiosFormData.jpnName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="价格" prop="price">
-              <el-input v-model.number="newHalobios.price" />
+              <el-input v-model.number="halobiosFormData.price" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="场所" prop="locale">
               <el-select
-                v-model="newHalobios.locale"
+                v-model="halobiosFormData.locale"
                 multiple
                 placeholder="请选择出现场所"
               >
@@ -253,7 +233,7 @@
           <el-col :span="8">
             <el-form-item label="鱼影" prop="shadow">
               <el-select
-                v-model="newHalobios.shadow"
+                v-model="halobiosFormData.shadow"
                 placeholder="请选择鱼影大小"
               >
                 <el-option
@@ -272,7 +252,7 @@
           <el-col :span="9">
             <el-form-item label="北半球" prop="activeTime.north">
               <el-select
-                v-model="newHalobios.activeTime.north"
+                v-model="halobiosFormData.activeTime.north"
                 multiple
                 collapse-tags
                 clearable
@@ -296,7 +276,7 @@
           <el-col :span="9">
             <el-form-item label="南半球" prop="activeTime.south">
               <el-select
-                v-model="newHalobios.activeTime.south"
+                v-model="halobiosFormData.activeTime.south"
                 multiple
                 collapse-tags
                 clearable
@@ -328,7 +308,7 @@
           <el-col :span="9">
             <el-form-item label="开始时间" prop="periodStart">
               <el-time-select
-                v-model="newHalobios.periodStart"
+                v-model="halobiosFormData.periodStart"
                 :picker-options="periodOptions"
                 placeholder="请选择开始时间"
               >
@@ -338,7 +318,7 @@
           <el-col :span="9">
             <el-form-item label="结束时间" prop="periodEnd">
               <el-time-select
-                v-model="newHalobios.periodEnd"
+                v-model="halobiosFormData.periodEnd"
                 :picker-options="periodOptions"
                 placeholder="请选择结束时间"
               >
@@ -348,7 +328,7 @@
           <el-col :span="8">
             <el-form-item label="解锁要求" prop="unlockCondition">
               <el-select
-                v-model="newHalobios.unlockCondition"
+                v-model="halobiosFormData.unlockCondition"
                 placeholder="请选择解锁条件"
               >
                 <el-option
@@ -362,7 +342,7 @@
           </el-col>
           <!-- <el-col :span="8">
             <el-form-item label="稀有度" prop="rarity">
-              <el-select v-model="newHalobios.rarity" placeholder="请选择稀有程度">
+              <el-select v-model="halobiosFormData.rarity" placeholder="请选择稀有程度">
                 <el-option v-for="item in rarityList"  :label="item.text" :value="item.value"> </el-option>
               </el-select>
             </el-form-item>
@@ -370,27 +350,37 @@
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
               <upload-single
-                v-model="newHalobios.photoSrc"
+                v-model="halobiosFormData.photoSrc"
                 dialog-width="30%"
               />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="简介" prop="introduction">
-              <el-input v-model="newHalobios.introduction" type="textarea" />
+              <el-input
+                v-model="halobiosFormData.introduction"
+                type="textarea"
+              />
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postHalobios">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button
+            type="primary"
+            @click="handlePost(false, beforePostProcess)"
+            >确 定</el-button
+          >
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { defineComponent, ref, reactive, onMounted } from 'vue'
 import getOption from '@utils/get-option'
 import {
   getHalobiosList,
@@ -398,62 +388,66 @@ import {
   getHalobios,
   deleteHalobios,
 } from '@api/halobios'
+import useMix from '@composables/useMix'
+import useSelectMonth from '@composables/useSelectMonth'
+import usePeriodProcess from '@composables/usePeriodProcess'
 
-export default {
+export default defineComponent({
   name: 'Halobios',
-  data() {
+  inject: ['apiUrl', 'monthList', 'periodOptions'],
+  setup() {
+    const halobiosFormRef = ref(null)
+    const halobiosFormData = reactive({
+      name: '',
+      price: null,
+      engName: '',
+      jpnName: '',
+      activeTime: { north: [], south: [] },
+      locale: ['海洋底部'],
+      period: '',
+      periodStart: '',
+      periodEnd: '',
+      shadow: '',
+      unlockCondition: '',
+      introduction: '',
+      photoSrc: '',
+    })
+
+    const apiOption = {
+      getListApi: getHalobiosList,
+      getInfoApi: getHalobios,
+      deleteApi: deleteHalobios,
+      addApi: addHalobios,
+    }
+    const mixProps = useMix(apiOption, halobiosFormRef, halobiosFormData)
+
+    const localeList = ref([{ text: '海洋底部', value: '海洋底部' }])
+    const shadowList = ref([])
+    const unlockConditionList = ref([])
+
+    const getOptions = () => {
+      getOption('halobiosLocale', list => {
+        localeList.value = list
+      })
+      getOption('halobiosShadow', list => {
+        shadowList.value = list
+      })
+      getOption('halobiosUnlock', list => {
+        unlockConditionList.value = list
+      })
+    }
+
+    onMounted(getOptions)
+
+    const { selectAll } = useSelectMonth(halobiosFormData)
+
+    const beforePostProcess = () => usePeriodProcess(halobiosFormData)
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newHalobios: {
-        name: '',
-        price: null,
-        engName: '',
-        jpnName: '',
-        activeTime: { north: [], south: [] },
-        locale: ['海洋底部'],
-        period: '',
-        periodStart: '',
-        periodEnd: '',
-        shadow: '',
-        unlockCondition: '',
-        introduction: '',
-        photoSrc: '',
-      },
-      oldOptions: {
-        north: [],
-        south: [],
-      },
-      periodOptions: { start: '01:00', step: '1:00', end: '24:00' },
-      localeList: [{ text: '海洋底部', value: '海洋底部' }],
-      monthList: [
-        { text: '全年', value: '全年' },
-        { text: '一月', value: '1月' },
-        { text: '二月', value: '2月' },
-        { text: '三月', value: '3月' },
-        { text: '四月', value: '4月' },
-        { text: '五月', value: '5月' },
-        { text: '六月', value: '6月' },
-        { text: '七月', value: '7月' },
-        { text: '八月', value: '8月' },
-        { text: '九月', value: '9月' },
-        { text: '十月', value: '10月' },
-        { text: '十一月', value: '11月' },
-        { text: '十二月', value: '12月' },
-      ],
-      shadowList: [],
-      unlockConditionList: [],
-      newHalobiosRules: {
+      ...mixProps,
+      halobiosFormRef,
+      halobiosFormData,
+      halobiosFormRules: {
         name: [
           { required: true, message: '请输入鱼类名称', trigger: 'blur' },
           {
@@ -465,75 +459,12 @@ export default {
         ],
         price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
       },
-      multipleSelection: [],
+      localeList,
+      shadowList,
+      unlockConditionList,
+      selectAll,
+      beforePostProcess,
     }
   },
-  computed: {},
-  created() {
-    this.fetchData()
-    this.getOptions()
-  },
-  methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getHalobiosList, this)
-    },
-    getOptions() {
-      getOption('halobiosLocale', list => {
-        this.localeList = list
-      })
-      getOption('halobiosShadow', list => {
-        this.shadowList = list
-      })
-      getOption('halobiosUnlock', list => {
-        this.unlockConditionList = list
-      })
-    },
-    selectAll(val, prop) {
-      const allValues = []
-      for (const item of this.monthList) {
-        allValues.push(item.value)
-      }
-      const oldVal =
-        this.oldOptions[prop].length === 0 ? [] : this.oldOptions[prop][1]
-      if (val.includes('全年')) this.newHalobios.activeTime[prop] = allValues
-      if (oldVal.includes('全年') && !val.includes('全年'))
-        this.newHalobios.activeTime[prop] = []
-      if (oldVal.includes('全年') && val.includes('全年')) {
-        const index = val.indexOf('全年')
-        val.splice(index, 1)
-        this.newHalobios.activeTime[prop] = val
-      }
-      if (!oldVal.includes('全年') && !val.includes('全年')) {
-        if (val.length === allValues.length - 1)
-          this.newHalobios.activeTime[prop] = ['全年'].concat(val)
-      }
-      this.oldOptions[prop][1] = this.newHalobios.activeTime[prop]
-    },
-    postHalobios() {
-      const startPeriod =
-        this.newHalobios.periodStart.indexOf('0') === 0
-          ? this.newHalobios.periodStart.substring(1, 2)
-          : this.newHalobios.periodStart.substring(0, 2)
-      const endPeriod =
-        this.newHalobios.periodEnd.indexOf('0') === 0
-          ? this.newHalobios.periodEnd.substring(1, 2)
-          : this.newHalobios.periodEnd.substring(0, 2)
-      this.newHalobios.period = startPeriod + '点-' + endPeriod + '点'
-      this.commonApi.postForm('halobios', addHalobios, this)
-    },
-    handleEdit(id) {
-      this.commonApi.openEditForm(id, 'halobios', getHalobios, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteHalobios, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteHalobios,
-        this.fetchData
-      )
-    },
-  },
-}
+})
 </script>

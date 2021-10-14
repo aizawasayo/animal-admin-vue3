@@ -11,13 +11,13 @@
         <navbar />
         <tags-view v-if="needTagsView" />
       </div>
-      <app-main />
+      <app-main :isShowMain="isShowMain" />
     </div>
   </div>
 </template>
 
 <script>
-import { defineComponent, computed, watch, reactive, toRefs } from 'vue'
+import { defineComponent, ref, computed, nextTick, provide } from 'vue'
 import Navbar from './components/Navbar.vue'
 import Sidebar from './components/Sidebar/index.vue'
 import AppMain from './components/AppMain.vue'
@@ -27,12 +27,14 @@ import useResize from './composables/useResize.js'
 
 export default defineComponent({
   name: 'Layout',
+  // provide: {
+  //   reloadRoute: this.reloadRoute,
+  // },
   components: { Navbar, Sidebar, AppMain, TagsView },
   // mixins: [ResizeMixin],
   setup() {
     const store = useStore()
     const { device, sidebar } = useResize()
-    // console.log(sidebar.value.opened)
 
     const classObj = computed(() => ({
       hideSidebar: !sidebar.value.opened,
@@ -40,9 +42,21 @@ export default defineComponent({
       withoutAnimation: sidebar.value.withoutAnimation,
       mobile: device.value === 'mobile',
     }))
+
     const handleClickOutside = () => {
       store.dispatch('app/closeSideBar', { withoutAnimation: false })
     }
+
+    const isShowMain = ref(true)
+    const reloadRoute = () => {
+      isShowMain.value = false
+      nextTick(() => {
+        isShowMain.value = true
+      })
+    }
+
+    provide('reloadRoute', reloadRoute)
+
     return {
       device,
       sidebar,
@@ -50,6 +64,8 @@ export default defineComponent({
       needTagsView: computed(() => store.state.settings.tagsView),
       fixedHeader: computed(() => store.state.settings.fixedHeader),
       handleClickOutside,
+      isShowMain,
+      reloadRoute,
     }
   },
 })

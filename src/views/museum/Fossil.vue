@@ -4,25 +4,10 @@
       <el-col :span="16">
         <el-row :gutter="24">
           <el-col :span="16">
-            <el-input
-              v-model="queryInfo.query"
-              placeholder="请输入化石名称关键字"
-              class="input-with-select"
-              clearable
-              @clear="fetchData"
-              @keyup.enter.native="fetchData('refresh')"
-            >
-              <el-button
-                slot="append"
-                icon="el-icon-search"
-                @click="fetchData('refresh')"
-              ></el-button>
-            </el-input>
+            <search-bar v-model:query="listQuery.query" keyword="化石" />
           </el-col>
           <el-col :span="8">
-            <el-button
-              type="primary"
-              @click="() => commonApi.openAddForm('fossil', this)"
+            <el-button type="primary" @click="openAddDialog"
               >添加化石</el-button
             >
           </el-col>
@@ -40,16 +25,11 @@
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
-      <el-table-column
-        type="selection"
-        width="40"
-        :show-overflow-tooltip="true"
-      >
-      </el-table-column>
+      <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="55">
         <template #default="scope">
           {{ scope.$index + 1 }}
@@ -132,37 +112,37 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="newFossilRef"
+        ref="fossilFormRef"
         :inline="false"
-        :model="newFossil"
-        :rules="newFossilRules"
+        :model="fossilFormData"
+        :rules="fossilFormRules"
         label-width="80px"
       >
         <el-row>
           <el-col :span="8">
             <el-form-item label="名称" prop="name">
-              <el-input v-model="newFossil.name" />
+              <el-input v-model="fossilFormData.name" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="英文名" prop="engName">
-              <el-input v-model="newFossil.engName" />
+              <el-input v-model="fossilFormData.engName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="日文名" prop="jpnName">
-              <el-input v-model="newFossil.jpnName" />
+              <el-input v-model="fossilFormData.jpnName" />
             </el-form-item>
           </el-col>
           <el-col :span="8">
             <el-form-item label="价格" prop="price">
-              <el-input v-model.number="newFossil.price" />
+              <el-input v-model.number="fossilFormData.price" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
             <el-form-item label="照片" prop="photoSrc">
               <upload-single
-                v-model="newFossil.photoSrc"
+                v-model="fossilFormData.photoSrc"
                 dialog-width="25%"
                 drag
               />
@@ -170,84 +150,72 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="简介" prop="introduction">
-              <el-input v-model="newFossil.introduction" type="textarea" />
+              <el-input v-model="fossilFormData.introduction" type="textarea" />
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="postFossil">确 定</el-button>
-      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button
+            type="primary"
+            @click="handlePost(false, beforePostProcess)"
+            >确 定</el-button
+          >
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { defineComponent, ref, reactive } from 'vue'
 import { getFossils, addFossil, getFossil, deleteFossil } from '@api/fossil'
+import useMix from '@composables/useMix'
 
-export default {
+export default defineComponent({
   name: 'Fossil',
-  data() {
+  inject: ['apiUrl'],
+  setup() {
+    const fossilFormRef = ref(null)
+    const fossilFormData = reactive({
+      name: '',
+      price: null,
+      engName: '',
+      jpnName: '',
+      introduction: '',
+      photoSrc: '',
+    })
+
+    const apiOption = {
+      getListApi: getFossils,
+      getInfoApi: getFossil,
+      deleteApi: deleteFossil,
+      addApi: addFossil,
+    }
+    const mixProps = useMix(apiOption, fossilFormRef, fossilFormData)
+
+    const beforePostProcess = formData => {
+      formData.birth = formData.month + '月' + formData.date + '日'
+      formData.monthStr = formData.month + '月'
+    }
+
     return {
-      list: null,
-      listLoading: true,
-      queryInfo: {
-        query: '',
-        page: 1,
-        pageSize: 10,
-        sortJson: {},
-        sort: '',
-      },
-      total: 0,
-      dialogVisible: false,
-      emptyText: '没有相关数据',
-      newFossil: {
-        name: '',
-        price: null,
-        engName: '',
-        jpnName: '',
-        introduction: '',
-        photoSrc: '',
-      },
-      newFossilRules: {
+      ...mixProps,
+      fossilFormRef,
+      fossilFormData,
+
+      fossilFormRules: {
         name: [
           { required: true, message: '请输入岛民名字', trigger: 'blur' },
           { min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur' },
         ],
       },
-      multipleSelection: [],
+      beforePostProcess,
     }
   },
-  computed: {},
-  created() {
-    this.fetchData()
-  },
-  methods: {
-    fetchData(param) {
-      this.commonApi.getList(param, getFossils, this)
-    },
-    postFossil() {
-      this.newFossil.birth =
-        this.newFossil.month + '月' + this.newFossil.date + '日'
-      this.newFossil.monthStr = this.newFossil.month + '月'
-      this.commonApi.postForm('fossil', addFossil, this)
-    },
-    handleEdit(id) {
-      this.commonApi.openEditForm(id, 'fossil', getFossil, this)
-    },
-    handleDelete(id) {
-      this.commonApi.deleteById(id, deleteFossil, this.fetchData)
-    },
-    handelMultipleDelete() {
-      this.commonApi.multipleDelete(
-        this.multipleSelection,
-        deleteFossil,
-        this.fetchData
-      )
-    },
-  },
-}
+})
 </script>
 
 <style scoped></style>

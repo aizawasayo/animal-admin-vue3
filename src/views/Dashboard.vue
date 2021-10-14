@@ -28,11 +28,28 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, onMounted, reactive } from 'vue'
 import { mapGetters } from 'vuex'
 
 export default defineComponent({
   name: 'Home',
+  setup() {
+    const form = reactive({
+      name: '11',
+      age: 11,
+    })
+
+    onMounted(() => {
+      Object.keys(form).map(key => {
+        delete form[key]
+      })
+      // console.log(form)
+    })
+
+    return {
+      form,
+    }
+  },
   data() {
     return { currentPage4: 4, checkList: ['选中且禁用', '复选框 A'] }
   },

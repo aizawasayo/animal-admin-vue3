@@ -1,7 +1,7 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref } from 'vue'
 
-export default function useDelete(deleteApi, refreshList) {
+export default function useDelete(deleteApi, refreshList, type) {
   const multiSelection = ref([])
 
   // 监听多选并给多选数组赋值
@@ -10,13 +10,16 @@ export default function useDelete(deleteApi, refreshList) {
   }
 
   const deleteById = (id, callback) => {
+    let params = [] // 用来处理评论 api 的特殊情况
+    type && type.value ? (params = [id, type.value]) : (params = [id])
+
     ElMessageBox.confirm('是否要永久删除数据', '提示', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warn',
     })
       .then(() => {
-        deleteApi(id).then(res => {
+        deleteApi(...params).then(res => {
           ElMessage.success(res.message)
           callback()
         })

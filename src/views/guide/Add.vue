@@ -3,10 +3,11 @@
 </template>
 
 <script>
-import GuideDetail from './components/GuideDetail'
+import { defineComponent } from 'vue'
+import GuideDetail from './components/GuideDetail.vue'
 
-export default {
+export default defineComponent({
   name: 'GuideAdd',
-  components: { GuideDetail }
-}
+  components: { GuideDetail },
+})
 </script>

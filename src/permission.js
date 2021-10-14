@@ -1,4 +1,4 @@
-import router, { addRoutes } from '@router'
+import router from '@router'
 import store from '@store'
 import { getToken } from '@utils/auth' // get token from cookie
 import getPageTitle from '@utils/get-page-title'
@@ -12,56 +12,6 @@ NProgress.configure({
 }) // NProgress Configuration
 
 const whiteList = ['/login', '/auth-redirect'] // no redirect whitelist
-
-// 判断是否存在已添加的路由
-const hasRoute = to => {
-  let flag = true
-  router.getRoutes().map(item => {
-    // 判断是否存在动态路由
-    if (item.path.indexOf('/:') != -1) {
-      if (to.path.indexOf(item.path.substr(0, item.path.indexOf('/:'))) != -1) {
-        flag = false
-      }
-    } else {
-      if (item.path == to.path) {
-        flag = false
-      }
-    }
-  })
-
-  return flag
-}
-
-// 返回当前需要跳转的路由对象
-const generateRoute = (to, routeArr) => {
-  let index = 0
-  let flag = false
-  let toArr = to.path.substr(0, to.path.indexOf('/', 1))
-  routeArr.map((item, i) => {
-    if (item.path == toArr) {
-      item.children.map(v => {
-        // 判断是否有动态路由
-        if (v.path.indexOf('/:') != -1) {
-          if (
-            to.path.indexOf(
-              `${toArr}/${v.path.substr(0, v.path.indexOf('/:'))}`
-            ) != -1
-          ) {
-            index = i
-            flag = true
-          }
-        } else {
-          if (to.path == `${toArr}/${v.path}`) {
-            index = i
-            flag = true
-          }
-        }
-      })
-    }
-  })
-
-  return { route: routeArr[index], flag }
-}
 
 router.beforeEach(async (to, from, next) => {
   // start progress bar
@@ -77,9 +27,7 @@ router.beforeEach(async (to, from, next) => {
   if (hasToken) {
     if (to.path === '/login') {
       // if is logged in, redirect to the home page
-      next({
-        path: '/',
-      })
+      next({ path: '/' })
       NProgress.done() // hack: https://github.com/PanJiaChen/vue-element-admin/pull/2939
     } else {
       // 判断用户是否通过 getInfo 获得了权限角色
@@ -98,25 +46,23 @@ router.beforeEach(async (to, from, next) => {
             roles
           )
 
+          // console.log(accessRoutes)
+
           // 更新加载路由
-          router.options.routes = store.getters.permission_routes
+          // router.options.routes = store.getters.permission_routes
           // dynamically add accessible routes
-          addRoutes(accessRoutes)
-          // if (hasRoute(to)) {
-          //   const result = generateRoute(to, accessRoutes)
-          //   // result.flag 判断是否有匹配到的路由, false则跳转到404页面
-          //   if (result.flag) {
-          //     router.addRoute(result.route)
-          //     return to.fullPath
-          //   } else {
-          //     return '/404'
-          //   }
-          // } else {
-          next({
-            ...to,
-            replace: true,
+          // addRoutes(accessRoutes)
+          accessRoutes.forEach(route => {
+            router.addRoute(route)
           })
-          // }
+
+          if (to.matched.length === 0) {
+            // router.push({ path: to.path, query: to.query })
+            next({ ...to, replace: true })
+          } else {
+            next()
+          }
+
           // console.log(router.getRoutes())
           // hack method to ensure that addRoutes is complete
           // set the replace: true, so the navigation will not leave a history record
@@ -124,7 +70,6 @@ router.beforeEach(async (to, from, next) => {
           console.warn(error)
           // remove token and go to login page to re-login
           await store.dispatch('user/resetToken')
-          console.log(error)
           ElMessage.error(error.Message || 'Has Error')
           next(`/login?redirect=${to.path}`)
           NProgress.done()

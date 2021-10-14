@@ -1,26 +1,32 @@
 <template>
   <div class="createPost-container">
     <el-form
-      ref="postForm"
-      :model="postForm"
-      :rules="rules"
+      ref="guideFormRef"
+      :model="guideFormData"
+      :rules="guideFormRules"
       class="form-container"
     >
-      <sticky :z-index="10" :class-name="'sub-navbar ' + postForm.status">
-        <CommentDropdown v-model="postForm.comment_disabled" />
-        <PlatformDropdown v-model="postForm.platforms" />
-        <SourceUrlDropdown v-model="postForm.source_uri" />
+      <sticky :z-index="10" :class-name="'sub-navbar ' + guideFormData.status">
+        <CommentDropdown v-model="guideFormData.comment_disabled" />
+        <PlatformDropdown
+          v-model="guideFormData.platforms"
+          style="margin-left: 10px"
+        />
+        <SourceUrlDropdown
+          v-model="guideFormData.source_uri"
+          style="margin-left: 10px"
+        />
         <el-button
-          v-loading="loading"
+          v-loading="postLoading"
           style="margin-left: 10px"
           type="success"
-          @click="submitForm('published')"
+          @click="handlePost('published')"
           >发布</el-button
         >
         <el-button
-          v-loading="loading"
-          type="warning"
-          @click="submitForm('draft')"
+          v-loading="postLoading"
+          type="danger"
+          @click="handlePost('draft')"
           >存草稿</el-button
         >
       </sticky>
@@ -30,7 +36,7 @@
           <el-col :span="24">
             <el-form-item style="margin-bottom: 40px" prop="title">
               <MDinput
-                v-model="postForm.title"
+                v-model="guideFormData.title"
                 :maxlength="100"
                 name="name"
                 required
@@ -49,7 +55,7 @@
                     required
                   >
                     <el-select
-                      v-model="postForm.author"
+                      v-model="guideFormData.author"
                       :remote-method="getUserList"
                       filterable
                       default-first-option
@@ -65,7 +71,6 @@
                     </el-select>
                   </el-form-item>
                 </el-col>
-
                 <el-col :span="10">
                   <el-form-item
                     label-width="120px"
@@ -75,7 +80,6 @@
                     <el-date-picker
                       v-model="displayTime"
                       type="datetime"
-                      format="yyyy-MM-dd HH:mm:ss"
                       placeholder="请选择时间"
                     />
                   </el-form-item>
@@ -89,7 +93,7 @@
                     prop="type"
                     required
                   >
-                    <el-select v-model="postForm.type" filterable>
+                    <el-select v-model="guideFormData.type" filterable>
                       <el-option
                         v-for="(item, index) in typeOptions"
                         :label="item"
@@ -101,7 +105,7 @@
                 <!-- <el-col :span="6">
                   <el-form-item label-width="90px" label="级别:" class="postInfo-container-item">
                     <el-rate
-                      v-model="postForm.importance"
+                      v-model="guideFormData.importance"
                       :max="3"
                       :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
                       :low-threshold="1"
@@ -121,7 +125,7 @@
           label="摘要:"
         >
           <el-input
-            v-model="postForm.content_short"
+            v-model="guideFormData.content_short"
             :rows="1"
             type="textarea"
             class="article-textarea"
@@ -129,16 +133,16 @@
             placeholder="请输入内容"
           />
           <span v-show="contentShortLength" class="word-counter"
-            >{{ contentShortLength }}words</span
+            >{{ contentShortLength }}个字</span
           >
         </el-form-item>
 
         <el-form-item prop="content" style="margin-bottom: 30px">
-          <Tinymce ref="editor" v-model="postForm.content" :height="400" />
+          <Tinymce ref="editor" v-model="guideFormData.content" :height="400" />
         </el-form-item>
         <h4 class="mainImg-title"><span>*</span>文章主图</h4>
         <el-form-item prop="image_uri" style="margin-bottom: 30px">
-          <Upload v-model="postForm.image_uri" />
+          <image-upload v-model="guideFormData.image_uri" />
         </el-form-item>
       </div>
     </el-form>
@@ -146,10 +150,22 @@
 </template>
 
 <script>
-import Tinymce from '@components/Tinymce'
-import Upload from '@components/Upload/SingleImage3'
-import MDinput from '@components/MDinput'
-import Sticky from '@components/Sticky'
+import {
+  computed,
+  defineComponent,
+  ref,
+  unref,
+  onBeforeMount,
+  reactive,
+  nextTick,
+} from 'vue'
+import { useStore } from 'vuex'
+import { useRouter, useRoute } from 'vue-router'
+import Tinymce from '@components/Tinymce/index.vue'
+import ImageUpload from '@components/ImageUpload.vue'
+import MDinput from '@components/MDinput.vue'
+import Sticky from '@components/Sticky.vue'
+import usePostForm from '@composables/usePostForm'
 import { getGuide, addGuide } from '@api/guide'
 import { searchUser } from '@api/user'
 import {
@@ -157,29 +173,15 @@ import {
   PlatformDropdown,
   SourceUrlDropdown,
 } from './Dropdown'
-import { timestamp, parseTime } from '@utils'
+import { timestamp, parseTime, standardTime } from '@utils'
+import { ElMessage } from 'element-plus'
 
-const defaultForm = {
-  status: 'draft',
-  title: '',
-  content: '',
-  content_short: '',
-  type: '',
-  source_uri: '',
-  image_uri: '',
-  display_time: undefined,
-  _id: undefined,
-  platforms: [],
-  comment_disabled: false,
-  author: { username: '', _id: '' },
-}
-
-export default {
+export default defineComponent({
   name: 'GuideDetail',
   components: {
     Tinymce,
     MDinput,
-    Upload,
+    ImageUpload,
     Sticky,
     CommentDropdown,
     PlatformDropdown,
@@ -191,115 +193,152 @@ export default {
       default: false,
     },
   },
-  data() {
+  setup(props) {
+    const store = useStore()
+    const router = useRouter()
+    const route = useRoute()
+    const guideFormRef = ref(null)
+    const guideFormData = reactive({
+      status: 'draft',
+      title: '',
+      content: '',
+      content_short: '',
+      type: '',
+      source_uri: '',
+      image_uri: '',
+      display_time: '',
+      _id: undefined,
+      platforms: [],
+      comment_disabled: false,
+      author: { username: '', _id: '' },
+    })
+
+    const displayTime = ref('')
+    const postLoading = ref(false)
+    const userListOptions = ref([])
+
     const validateRequire = (rule, value, callback) => {
       if (value === '') {
-        this.$message.error(rule.field + '为必传项')
+        ElMessage.error(rule.field + '为必传项')
         callback(new Error(rule.field + '为必传项'))
       } else {
         callback()
       }
     }
+
+    const setTagsViewTitle = () => {
+      const title = '编辑文章'
+      const editRoute = Object.assign({}, route, {
+        title: `${title}-${guideFormData._id}`,
+      })
+      store.dispatch('tagsView/updateVisitedView', editRoute)
+    }
+
+    const setPageTitle = () => {
+      const title = '编辑文章'
+      document.title = `${title} - ${guideFormData._id}`
+    }
+
+    const getUserList = query => {
+      if (!query.trim()) return
+      searchUser(query)
+        .then(response => {
+          if (response.data.length === 0) return
+          userListOptions.value = response.data.map(v => {
+            return { username: v.username, _id: v._id }
+          })
+        })
+        .catch(err => ElMessage.error(err.message))
+    }
+
+    const { postForm } = usePostForm(guideFormRef, guideFormData)
+
+    const handlePost = state => {
+      guideFormRef.value.validate(valid => {
+        if (valid) {
+          postForm(
+            addGuide,
+            () => {
+              //  成功回调
+              postLoading.value = false
+              nextTick(() => {})
+            },
+            null, //  失败回调
+            formData => {
+              //表单上传前的数据处理
+              formData.status = state
+              // const timeString = parseTime(displayTime.value)
+              // formData.display_time = timestamp(timeString)
+              postLoading.value = true
+            }
+          )
+        } else {
+          ElMessage.error('请填写必要的标题和内容')
+          return false
+        }
+      })
+    }
+
+    const getFormData = id => {
+      getGuide(id)
+        .then(response => {
+          Object.keys(response.data).forEach(key => {
+            guideFormData[key] = response.data[key]
+          })
+          // guideFormData.display_time = standardTime(guideFormData.display_time)
+          // displayTime.value = standardTime(guideFormData.display_time)
+          userListOptions.value.push(guideFormData.author)
+          setTagsViewTitle()
+          setPageTitle()
+        })
+        .catch(err => ElMessage.error(err.message))
+    }
+
+    onBeforeMount(() => {
+      if (props.isEdit) {
+        const id = route.params && route.params.id
+        getFormData(id)
+      }
+    })
+
     return {
-      postForm: Object.assign({}, defaultForm),
-      loading: false,
-      userListOptions: [],
-      typeOptions: ['活动大全', '攻略合集'],
-      rules: {
+      guideFormRef,
+      guideFormData,
+      guideFormRules: {
         image_uri: [{ validator: validateRequire }],
         author: [{ validator: validateRequire }],
         type: [{ validator: validateRequire }],
         title: [{ validator: validateRequire }],
         content: [{ validator: validateRequire }],
       },
-      tempRoute: {},
+      postLoading,
+      userListOptions,
+      typeOptions: ['活动大全', '攻略合集'],
+      contentShortLength: computed(() => guideFormData.content_short.length),
+      displayTime: computed({
+        get: () => {
+          if (guideFormData.display_time)
+            return (displayTime.value = standardTime(
+              guideFormData.display_time
+            ))
+        },
+        set: val => {
+          const timeString = parseTime(val)
+          guideFormData.display_time = timestamp(timeString)
+        },
+      }),
+      setTagsViewTitle,
+      setPageTitle,
+      getUserList,
+      handlePost,
+      getFormData,
     }
   },
-  computed: {
-    contentShortLength() {
-      return this.postForm.content_short.length
-    },
-    displayTime: {
-      get() {
-        return +new Date(this.postForm.display_time)
-      },
-      set(val) {
-        this.postForm.display_time = new Date(val)
-      },
-    },
-  },
-  created() {
-    if (this.isEdit) {
-      const id = this.$route.params && this.$route.params.id
-      this.fetchData(id)
-    }
-
-    this.tempRoute = Object.assign({}, this.$route)
-  },
-  methods: {
-    fetchData(id) {
-      getGuide(id)
-        .then(response => {
-          this.postForm = response.data
-          this.userListOptions.push(this.postForm.author)
-          this.setTagsViewTitle()
-
-          this.setPageTitle()
-        })
-        .catch(err => this.$message.error(err.message))
-    },
-    setTagsViewTitle() {
-      const title = '编辑文章'
-      const route = Object.assign({}, this.tempRoute, {
-        title: `${title}-${this.postForm._id}`,
-      })
-      this.$store.dispatch('tagsView/updateVisitedView', route)
-    },
-    setPageTitle() {
-      const title = '编辑文章'
-      document.title = `${title} - ${this.postForm._id}`
-    },
-    submitForm(state) {
-      this.$refs.postForm.validate(valid => {
-        if (valid) {
-          this.postForm.status = state
-          const timeString = parseTime(this.postForm.display_time)
-          this.postForm.display_time = timestamp(timeString)
-          this.loading = true
-          addGuide(this.postForm)
-            .then(res => {
-              this.$notify({
-                title: '成功',
-                message: res.message,
-                type: 'success',
-                duration: 2000,
-              })
-              this.loading = false
-            })
-            .catch(err => this.$message.error(err.message))
-        } else {
-          this.$message.error('请填写必要的标题和内容')
-          return false
-        }
-      })
-    },
-    getUserList(query) {
-      if (!query.trim()) return
-      searchUser(query)
-        .then(response => {
-          if (response.data.length === 0) return
-          this.userListOptions = response.data.map(v => {
-            return { username: v.username, _id: v._id }
-          })
-        })
-        .catch(err => this.$message.error(err.message))
-    },
-  },
-}
+})
 </script>
 
 <style lang="scss" scoped>
-@import '~@styles/mixin.scss';
+@import '@styles/mixin.scss';
 
 .createPost-container {
   position: relative;

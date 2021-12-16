@@ -2,7 +2,7 @@ node_modules
 .DS_Store
 dist
 dist-ssr
-demo
+src/demo
 *.local
 .env.development
 .env.production

@@ -15,9 +15,11 @@
 <script>
 import { scrollTo } from '@utils/scroll-to'
 import { computed, onUpdated } from 'vue'
+import { ElPagination } from 'element-plus'
 
 export default {
   name: 'Pagination',
+  components: { ElPagination },
   props: {
     total: {
       required: true,

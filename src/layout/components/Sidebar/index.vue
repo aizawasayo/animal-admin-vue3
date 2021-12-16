@@ -26,11 +26,12 @@ import { useStore } from 'vuex'
 import { useRoute, useRouter } from 'vue-router'
 import Logo from './Logo.vue'
 import SidebarItem from './SidebarItem.vue'
+import { ElScrollbar, ElMenu } from 'element-plus'
 // import variables from '@styles/variables.module.scss'
 
 export default defineComponent({
   name: 'SideBar',
-  components: { SidebarItem, Logo },
+  components: { ElScrollbar, ElMenu, SidebarItem, Logo },
   setup() {
     const store = useStore()
     const route = useRoute()

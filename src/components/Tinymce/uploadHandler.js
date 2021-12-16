@@ -56,8 +56,7 @@ export const imageUploadHandler = (
       return
     }
     let fileSrc = json.data.path
-    fileSrc = fileSrc.replace('/public', '')
-    fileSrc = import.meta.env.VITE_APP_BASE_API + fileSrc
+    fileSrc = import.meta.env.VITE_APP_REAL_API + fileSrc
     successFun(fileSrc)
   }
 

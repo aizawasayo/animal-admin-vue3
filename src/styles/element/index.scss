@@ -1,0 +1,46 @@
+// base color
+$blue: #409EFF;
+$lightBlue: #75B9BE;
+$red: #C03639;
+$pink: #E65D6E;
+$tiffany: #4AB7BD;
+$yellow: #FEC171;
+$green: #4FC08D;
+$panGreen: #3FB984;
+$deepGreen: #488466;
+$bgGreen: #EDFAF4;
+$purple: #7C77B9;
+$white: #FFFFFF;
+$grey: #606266;
+$lightGrey: #909399;
+
+// sidebar
+$sideBarWidth: 210px;
+
+@forward "element-plus/theme-chalk/src/common/var.scss" with (
+  $colors: (
+    'primary': (
+      'base': #4FC08D,
+    ),
+    'success': (
+      'base': #8BC34A,
+    ),
+    'warning': (
+      'base': #FFE787,
+    ),
+    'danger': (
+      'base': #7C77B9,
+    ),
+    'error': (
+      'base': #E65D6E,
+    ),
+    'info': (
+      'base': #606266,
+    ),
+  ),
+  $text-color: (
+    'primary':  #3FB984,
+    'regular': #606266,
+    'secondary': #909399
+  )
+);

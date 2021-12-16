@@ -18,9 +18,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -279,7 +278,14 @@ export default defineComponent({
       deleteApi: deleteTool,
       addApi: addTool,
     }
-    const mixProps = useMix(apiOption, toolFormRef, toolFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      toolFormRef,
+      toolFormData,
+      null,
+      loadingRef
+    )
 
     const channelList = ref([])
     const activityList = ref([])
@@ -302,6 +308,7 @@ export default defineComponent({
       toolFormRules: {
         name: [{ required: true, message: '请填写工具名', trigger: 'blur' }],
       },
+      loadingRef,
       channelList,
       activityList,
       isDIYList: [

@@ -18,9 +18,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -271,7 +270,14 @@ export default defineComponent({
       deleteApi: deleteMaterial,
       addApi: addMaterial,
     }
-    const mixProps = useMix(apiOption, materialFormRef, materialFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      materialFormRef,
+      materialFormData,
+      null,
+      loadingRef
+    )
 
     const activityList = ref([])
     const seasonList = ref([])
@@ -302,6 +308,7 @@ export default defineComponent({
           },
         ],
       },
+      loadingRef,
       activityList,
       seasonList,
       channelList: [

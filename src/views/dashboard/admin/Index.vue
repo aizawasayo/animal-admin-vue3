@@ -81,6 +81,7 @@
 
 <script lang="ts">
 import { ref } from 'vue'
+import { ElRow, ElCol } from 'element-plus'
 import GithubCorner from '@components/GithubCorner.vue'
 import PanelGroup from './components/PanelGroup.vue'
 import LineChart from './components/LineChart.vue'
@@ -96,6 +97,8 @@ export default {
   name: 'AdminDashboard',
   inject: ['apiUrl'],
   components: {
+    ElRow,
+    ElCol,
     GithubCorner,
     PanelGroup,
     LineChart,

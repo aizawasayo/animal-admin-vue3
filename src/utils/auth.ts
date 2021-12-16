@@ -6,7 +6,7 @@ export function getToken() {
   return Cookies.get(TokenKey)
 }
 
-export function setToken(token) {
+export function setToken(token: String) {
   return Cookies.set(TokenKey, token)
 }
 
@@ -18,7 +18,7 @@ export function getUserId() {
   return Cookies.get('userId')
 }
 
-export function setUserId(userId) {
+export function setUserId(userId: String) {
   return Cookies.set('userId', userId)
 }
 

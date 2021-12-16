@@ -11,8 +11,10 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed, onMounted, onBeforeUnmount } from 'vue'
-
+import { ElScrollbar } from 'element-plus'
 export default defineComponent({
+  name: 'ScrollPane',
+  components: { ElScrollbar },
   props: ['slotTagRefs'],
   emits: ['scroll'],
   setup(props, { emit }) {

@@ -1,5 +1,5 @@
 <template>
-  <div :id="id" :class="className" :style="{ height, widthW }" />
+  <div :id="id" :class="className" :style="{ height: height, width: width }" />
 </template>
 
 <script lang="ts">
@@ -109,7 +109,7 @@ export default defineComponent({
             z: 1,
             itemStyle: {
               opacity: 0.4,
-              barBorderRadius: 5,
+              borderRadius: 5,
               shadowBlur: 3,
               shadowColor: '#111',
             },
@@ -139,7 +139,7 @@ export default defineComponent({
             xAxisIndex: 1,
             z: 3,
             itemStyle: {
-              barBorderRadius: 5,
+              borderRadius: 5,
             },
           },
         ],

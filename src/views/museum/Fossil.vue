@@ -18,9 +18,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -194,7 +193,14 @@ export default defineComponent({
       deleteApi: deleteFossil,
       addApi: addFossil,
     }
-    const mixProps = useMix(apiOption, fossilFormRef, fossilFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      fossilFormRef,
+      fossilFormData,
+      null,
+      loadingRef
+    )
 
     const beforePostProcess = formData => {
       formData.birth = formData.month + '月' + formData.date + '日'
@@ -205,13 +211,13 @@ export default defineComponent({
       ...mixProps,
       fossilFormRef,
       fossilFormData,
-
       fossilFormRules: {
         name: [
           { required: true, message: '请输入岛民名字', trigger: 'blur' },
           { min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur' },
         ],
       },
+      loadingRef,
       beforePostProcess,
     }
   },

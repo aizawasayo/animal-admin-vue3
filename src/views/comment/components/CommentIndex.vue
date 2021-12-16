@@ -14,7 +14,7 @@
         >
       </el-col>
     </el-row>
-    <el-tabs v-model="activeName" style="margin-top: 15px" type="card">
+    <el-tabs v-model="activeName" style="margin-top: 15px" class="myTabs">
       <el-tab-pane
         v-for="(item, i) in tabOptions"
         :label="item.label"
@@ -36,7 +36,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import {
   defineComponent,
   ref,
@@ -65,7 +65,7 @@ export default defineComponent({
     })
 
     const tabIndex = computed(() =>
-      tabOptions.value.findIndex(item => item.key === activeName.value)
+      tabOptions.value.findIndex((item: any) => item.key === activeName.value)
     )
 
     watch(activeName, val => router.push(`${route.path}?tab=${val}`), {

@@ -19,7 +19,7 @@
         >
       </el-col>
     </el-row>
-    <el-tabs v-model="activeName" style="margin-top: 15px" type="card">
+    <el-tabs v-model="activeName" style="margin-top: 15px" class="myTabs">
       <el-tab-pane
         v-for="(item, i) in tabOptions"
         :label="item.label"

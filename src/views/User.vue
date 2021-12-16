@@ -21,9 +21,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -315,7 +314,14 @@ export default defineComponent({
       addApi: addUser,
     }
 
-    const mixProps = useMix(apiOption, userFormRef, userFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      userFormRef,
+      userFormData,
+      null,
+      loadingRef
+    )
 
     const checkPass = (rule, value, callback) => {
       // 至少8个字符，至少1个大写字母，1个小写字母和1个数字,不能包含特殊字符（非数字字母）：
@@ -333,22 +339,6 @@ export default defineComponent({
       ...mixProps,
       userFormRef,
       userFormData,
-      stateList: [
-        { text: '启用', value: 0 },
-        { text: '禁用', value: 1 },
-      ],
-      positionList: [
-        { text: '北半球', value: 'North' },
-        { text: '南半球', value: 'South' },
-      ],
-      roleList: [
-        { text: '管理员', value: 'admin' },
-        { text: '普通用户', value: 'normal' },
-      ],
-      disabledDate(time) {
-        // 禁用当前日期后面的日期
-        return time.getTime() > Date.now()
-      },
       userFormRules: {
         username: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -364,6 +354,23 @@ export default defineComponent({
         roles: [
           { required: true, message: '请选择用户角色', trigger: 'change' },
         ],
+      },
+      loadingRef,
+      stateList: [
+        { text: '启用', value: 0 },
+        { text: '禁用', value: 1 },
+      ],
+      positionList: [
+        { text: '北半球', value: 'North' },
+        { text: '南半球', value: 'South' },
+      ],
+      roleList: [
+        { text: '管理员', value: 'admin' },
+        { text: '普通用户', value: 'normal' },
+      ],
+      disabledDate(time) {
+        // 禁用当前日期后面的日期
+        return time.getTime() > Date.now()
       },
     }
   },

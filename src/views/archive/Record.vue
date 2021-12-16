@@ -18,9 +18,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -220,7 +219,14 @@ export default defineComponent({
       addApi: addRecord,
     }
     const uploadRef = ref(null)
-    const mixProps = useMix(apiOption, recordFormRef, recordFormData, uploadRef)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      recordFormRef,
+      recordFormData,
+      uploadRef,
+      loadingRef
+    )
 
     return {
       ...mixProps,
@@ -237,6 +243,7 @@ export default defineComponent({
           },
         ],
       },
+      loadingRef,
       uploadRef,
       channelList: [
         { text: 'Nook购物', value: 'Nook购物' },

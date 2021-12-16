@@ -52,7 +52,7 @@ export default defineComponent({
 
     const handleImageSuccess = response => {
       const fileSrc = response.data.path
-      emit('update:modelValue', fileSrc.replace('/public', ''))
+      emit('update:modelValue', fileSrc)
     }
 
     return {

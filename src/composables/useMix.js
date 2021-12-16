@@ -1,12 +1,13 @@
+import { computed, nextTick, reactive, unref } from 'vue'
 import useDelete from '@composables/useDelete'
 import useEditDialog from '@composables/useEditDialog'
 import useFilter from '@composables/useFilter'
 import useList from '@composables/useList'
 import usePostForm from '@composables/usePostForm'
 import useSort from '@composables/useSort'
-import { computed, nextTick, reactive, unref } from 'vue'
+import useLoading from '@composables/useLoading'
 
-export default function useMix(api, formRef, formData, uploadRef) {
+export default function useMix(api, formRef, formData, uploadRef, loadingRef) {
   const { sort, sortJson, sortChange } = useSort() // 列表排序
   // 分页请求参数
   const listQuery = reactive({
@@ -23,6 +24,8 @@ export default function useMix(api, formRef, formData, uploadRef) {
     api.getListApi
   )
   const { filterChange } = useFilter(listQuery) // 列表筛选
+
+  useLoading(loadingRef, listLoading)
 
   const {
     dialogVisible,

@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development vite",
     "build": "vue-tsc --noEmit && vite build",
-    "build:prod": "vite build",
+    "build:prod": "cross-env NODE_ENV=production vite build",
     "serve": "vite preview"
   },
   "dependencies": {
@@ -21,6 +21,7 @@
     "path-browserify": "^1.0.1",
     "screenfull": "^5.1.0",
     "tinymce": "^5.9.2",
+    "unplugin-vue-components": "^0.15.6",
     "vue": "^3.2.6",
     "vue-router": "^4.0.11",
     "vue3-count-to": "^1.1.0",
@@ -34,6 +35,7 @@
     "cross-env": "^7.0.3",
     "element-theme-chalk": "^2.15.6",
     "sass": "^1.42.1",
+    "unplugin-element-plus": "^0.1.1",
     "vite": "^2.6.5",
     "vite-plugin-mock": "^2.9.6",
     "vite-plugin-svg-icons": "^1.0.5"

@@ -21,10 +21,16 @@ export default function useEdit(formRef, formData) {
   // 打开弹窗并初始化数据
   const openAddDialog = callback => {
     dialogVisible.value = true
+
     nextTick(() => {
       // $refs['formDataRef'].resetFields()
       clearForm()
-      if (callback && typeof callback === Function) callback()
+
+      if (
+        callback &&
+        Object.prototype.toString.call(callback) === '[object Function]'
+      )
+        callback()
     })
   }
   // 请求信息并打开编辑弹窗

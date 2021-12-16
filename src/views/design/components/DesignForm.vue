@@ -36,7 +36,7 @@
           </el-form-item>
         </el-col>
         <el-col :span="24">
-          <el-form-item label="照片" prop="photoSrc">
+          <el-form-item label="照片" prop="photoSrc" required>
             <upload-multi
               ref="uploadRef"
               drag
@@ -104,7 +104,9 @@ export default defineComponent({
       clearForm,
     } = useEditDialog(designFormRef, designFormData)
 
-    const openAddCallback = () => (designFormData.type = type.value)
+    const openAddCallback = () => {
+      designFormData.type = type.value
+    }
 
     const { postUploadForm } = usePostForm(
       designFormRef,
@@ -114,7 +116,8 @@ export default defineComponent({
     )
 
     const handlePost = () => {
-      if (designFormData.photoSrc.length === 0)
+      console.log(uploadRef.value)
+      if (uploadRef.value.photoList.length === 0)
         return ElMessage.error('请上传图片！')
       postUploadForm(
         addDesign,

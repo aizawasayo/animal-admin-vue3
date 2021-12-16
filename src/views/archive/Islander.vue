@@ -21,9 +21,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -402,8 +401,14 @@ export default defineComponent({
       deleteApi: deleteIslander,
       addApi: addIslander,
     }
-
-    const mixProps = useMix(apiOption, islanderFormRef, islanderFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      islanderFormRef,
+      islanderFormData,
+      null,
+      loadingRef
+    )
 
     const checkMonth = (rule, value, callback) => {
       if (!value) {
@@ -464,6 +469,7 @@ export default defineComponent({
     return {
       islanderFormRef,
       islanderFormData,
+      loadingRef,
       ...mixProps,
       sexList: [
         { text: '♀', value: 0 },

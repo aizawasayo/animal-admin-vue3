@@ -13,6 +13,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { ElInput } from 'element-plus'
 defineProps({
   keyword: { type: String, default: '' },
   query: { type: String, default: '' },

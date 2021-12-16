@@ -23,11 +23,11 @@ export default function usePostFrom(formRef, formData, isUserPage, uploadRef) {
       postApi(...params)
         .then(res => {
           ElMessage.success(res.message)
-          success && success()
+          success && success(res)
         })
         .catch(err => {
           ElMessage.error(`提交失败，${err.message}！`)
-          fail && fail()
+          fail && fail(err)
         })
     })
   }

@@ -18,9 +18,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -180,8 +179,8 @@
               ></el-input-number>
             </el-form-item>
           </el-col>
-          <el-col :span="16">
-            <el-form-item v-show="!isLineBL" label="联系方式" prop="contact">
+          <el-col v-show="!isLineBL" :span="16">
+            <el-form-item label="联系方式" prop="contact">
               <el-radio-group v-model="tradeFormData.contact">
                 <el-radio label="SW">SW</el-radio>
                 <el-radio label="微信">微信</el-radio>
@@ -266,7 +265,14 @@ export default defineComponent({
       deleteApi: deleteTrade,
       addApi: addTrade,
     }
-    const mixProps = useMix(apiOption, tradeFormRef, tradeFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      tradeFormRef,
+      tradeFormData,
+      null,
+      loadingRef
+    )
 
     const userId = computed(() => store.getters.userId)
     const roles = computed(() => store.getters.roles)
@@ -325,6 +331,7 @@ export default defineComponent({
           { required: true, message: '请选择交易类型', trigger: 'change' },
         ],
       },
+      loadingRef,
       exchangeOption: [
         {
           value: '交易',

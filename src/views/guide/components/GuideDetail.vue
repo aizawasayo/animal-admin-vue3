@@ -17,14 +17,15 @@
           style="margin-left: 10px"
         />
         <el-button
-          v-loading="postLoading"
+          :loading="postLoading"
+          ref="loadingPubRef"
           style="margin-left: 10px"
           type="success"
           @click="handlePost('published')"
           >发布</el-button
         >
         <el-button
-          v-loading="postLoading"
+          :loading="postLoading"
           type="danger"
           @click="handlePost('draft')"
           >存草稿</el-button
@@ -34,7 +35,7 @@
       <div class="createPost-main-container">
         <el-row>
           <el-col :span="24">
-            <el-form-item style="margin-bottom: 40px" prop="title">
+            <el-form-item style="margin-bottom: 40px" prop="title" required>
               <MDinput
                 v-model="guideFormData.title"
                 :maxlength="100"
@@ -67,6 +68,7 @@
                         v-for="item in userListOptions"
                         :label="item.username"
                         :value="item"
+                        :key="item._id"
                       />
                     </el-select>
                   </el-form-item>
@@ -76,6 +78,8 @@
                     label-width="120px"
                     label="发布时间:"
                     class="postInfo-container-item"
+                    prop="display_time"
+                    required
                   >
                     <el-date-picker
                       v-model="displayTime"
@@ -98,6 +102,7 @@
                         v-for="(item, index) in typeOptions"
                         :label="item"
                         :value="item"
+                        :key="item"
                       />
                     </el-select>
                   </el-form-item>
@@ -149,12 +154,11 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import {
   computed,
   defineComponent,
   ref,
-  unref,
   onBeforeMount,
   reactive,
   nextTick,
@@ -166,6 +170,7 @@ import ImageUpload from '@components/ImageUpload.vue'
 import MDinput from '@components/MDinput.vue'
 import Sticky from '@components/Sticky.vue'
 import usePostForm from '@composables/usePostForm'
+import useLoading from '@composables/useLoading'
 import { getGuide, addGuide } from '@api/guide'
 import { searchUser } from '@api/user'
 import {
@@ -210,19 +215,20 @@ export default defineComponent({
       _id: undefined,
       platforms: [],
       comment_disabled: false,
-      author: { username: '', _id: '' },
+      author: '',
     })
 
     const displayTime = ref('')
     const postLoading = ref(false)
     const userListOptions = ref([])
 
-    const validateRequire = (rule, value, callback) => {
-      if (value === '') {
-        ElMessage.error(rule.field + '为必传项')
-        callback(new Error(rule.field + '为必传项'))
-      } else {
-        callback()
+    const validateRequire = (text: String) => {
+      return (rule: Object, value: any, callback: Function) => {
+        if (value === '') {
+          callback(new Error(`${text ? text : '该项'}为必填项`))
+        } else {
+          callback()
+        }
       }
     }
 
@@ -253,33 +259,33 @@ export default defineComponent({
 
     const { postForm } = usePostForm(guideFormRef, guideFormData)
 
-    const handlePost = state => {
-      guideFormRef.value.validate(valid => {
-        if (valid) {
-          postForm(
-            addGuide,
-            () => {
-              //  成功回调
-              postLoading.value = false
-              nextTick(() => {})
-            },
-            null, //  失败回调
-            formData => {
-              //表单上传前的数据处理
-              formData.status = state
-              // const timeString = parseTime(displayTime.value)
-              // formData.display_time = timestamp(timeString)
-              postLoading.value = true
-            }
-          )
-        } else {
-          ElMessage.error('请填写必要的标题和内容')
-          return false
-        }
+    const handlePost = (state: String) => {
+      guideFormRef.value.validate((valid: Boolean) => {
+        if (!valid) return ElMessage.error('请修改有误的表单项')
+        if (!guideFormData.image_uri) return ElMessage.error('请上传文章主图！')
+        postForm(
+          addGuide,
+          () => {
+            //  成功回调
+            postLoading.value = false
+            nextTick(() => {})
+          },
+          (err: any) => {
+            console.log(err)
+            postLoading.value = false
+          },
+          (formData: Object) => {
+            //表单上传前的数据处理
+            formData.status = state
+            // const timeString = parseTime(displayTime.value)
+            // formData.display_time = timestamp(timeString)
+            postLoading.value = true
+          }
+        )
       })
     }
 
-    const getFormData = id => {
+    const getFormData = (id: String) => {
       getGuide(id)
         .then(response => {
           Object.keys(response.data).forEach(key => {
@@ -293,6 +299,8 @@ export default defineComponent({
         })
         .catch(err => ElMessage.error(err.message))
     }
+    const bodyTarget = ref(document.body)
+    useLoading(bodyTarget, postLoading, '数据提交中')
 
     onBeforeMount(() => {
       if (props.isEdit) {
@@ -305,14 +313,28 @@ export default defineComponent({
       guideFormRef,
       guideFormData,
       guideFormRules: {
-        image_uri: [{ validator: validateRequire }],
-        author: [{ validator: validateRequire }],
-        type: [{ validator: validateRequire }],
-        title: [{ validator: validateRequire }],
-        content: [{ validator: validateRequire }],
+        author: [{ validator: validateRequire('作者'), trigger: 'blur' }],
+        display_time: [
+          { validator: validateRequire('发布时间'), trigger: 'blur' },
+        ],
+        type: [{ validator: validateRequire('类型'), trigger: 'blur' }],
+        title: [
+          {
+            validator: validateRequire('标题'),
+            trigger: 'blur',
+          },
+          {
+            min: 8,
+            max: 30,
+            message: '输入的标题长度需在 8 到 30 个字符',
+            trigger: 'blur',
+          },
+        ],
+        content: [{ validator: validateRequire('内容'), trigger: 'blur' }],
       },
       postLoading,
       userListOptions,
+      bodyTarget,
       typeOptions: ['活动大全', '攻略合集'],
       contentShortLength: computed(() => guideFormData.content_short.length),
       displayTime: computed({

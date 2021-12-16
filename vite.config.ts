@@ -2,9 +2,9 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import path from 'path'
 import { defineConfig } from 'vite'
-// import Components from 'unplugin-vue-components/vite'
-// import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-// import ElementPlus from 'unplugin-element-plus/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import ElementPlus from 'unplugin-element-plus/vite'
 
 import { viteMockServe } from 'vite-plugin-mock'
 import viteSvgIcons from 'vite-plugin-svg-icons'
@@ -31,10 +31,10 @@ export default defineConfig({
     vue(),
     vueJsx(),
     viteMockServe({ supportTs: false }),
-    // Components({
-    //   resolvers: [ElementPlusResolver()],
-    // }),
-    // ElementPlus({ useSource: false }),
+    Components({
+      resolvers: [ElementPlusResolver()],
+    }),
+    ElementPlus({ useSource: true }),
     viteSvgIcons({
       // 配置路劲在你的src里的svg存放文件
       iconDirs: [path.resolve(process.cwd(), 'src/icons')],
@@ -44,15 +44,17 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@import "./src/styles/variables.module.scss";`,
+        //additionalData: `@use "./src/styles/variables.module.scss";`,
+        additionalData: `@use "@styles/element/index.scss" as *;`,
       },
     },
   },
   server: {
+    port: 3333,
     proxy: {
       '/api': {
-        target: 'http://106.54.168.208:1016', // 腾讯云服务器
-        // target: 'http://localhost:1016',
+        // target: 'http://106.54.168.208:3003', // 腾讯云服务器
+        target: 'http://localhost:3003', // animal_server
         changeOrigin: true,
         rewrite: path => path.replace(/^\/api/, ''),
       },

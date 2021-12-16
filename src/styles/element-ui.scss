@@ -66,6 +66,18 @@
   background-color: $white;
 }
 
+.myTabs .el-tabs__header .el-tabs__item, .el-tabs--card>.el-tabs__header .el-tabs__item{
+  color:var(--el-text-color-regular);
+  border-bottom: 1px solid var(--el-border-color-light);
+  :hover{
+    color:var(--el-text-color-primary);
+  }
+}
+
+.myTabs .el-tabs__header .el-tabs__item.is-active, .el-tabs--card>.el-tabs__header .el-tabs__item.is-active{
+  color:var(--el-text-color-primary);
+}
+
 .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label:before{
   color: $red !important;
 }

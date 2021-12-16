@@ -18,9 +18,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -155,7 +154,7 @@
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="图片" prop="avatar">
+            <el-form-item label="图片" prop="avatar" required>
               <upload-single
                 v-model="bannerFormData.avatar"
                 dialog-width="60%"
@@ -183,6 +182,7 @@ import useMix from '@composables/useMix'
 export default defineComponent({
   name: 'Banner',
   inject: ['apiUrl'],
+  components: {},
   setup() {
     const bannerFormRef = ref(null)
     const bannerFormData = reactive({
@@ -197,17 +197,19 @@ export default defineComponent({
       deleteApi: deleteBanner,
       addApi: addBanner,
     }
-
-    const mixProps = useMix(apiOption, bannerFormRef, bannerFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      bannerFormRef,
+      bannerFormData,
+      null,
+      loadingRef
+    )
 
     return {
       ...mixProps,
       bannerFormRef,
       bannerFormData,
-      stateList: [
-        { text: '启用', value: 0 },
-        { text: '禁用', value: 1 },
-      ],
       bannerFormRules: {
         title: [
           { required: true, message: '请输入标题', trigger: 'blur' },
@@ -218,7 +220,13 @@ export default defineComponent({
             trigger: 'blur',
           },
         ],
+        avatar: [{ required: true, message: '请上传图片', trigger: 'blur' }],
       },
+      loadingRef,
+      stateList: [
+        { text: '启用', value: 0 },
+        { text: '禁用', value: 1 },
+      ],
     }
   },
 })

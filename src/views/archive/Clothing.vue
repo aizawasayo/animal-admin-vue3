@@ -18,9 +18,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -428,12 +427,13 @@ export default defineComponent({
     }
 
     const uploadRef = ref(null)
-
+    const loadingRef = ref(null)
     const mixProps = useMix(
       apiOption,
       clothingFormRef,
       clothingFormData,
-      uploadRef
+      uploadRef,
+      loadingRef
     )
 
     const typeList = ref([])
@@ -486,6 +486,7 @@ export default defineComponent({
         ],
       },
       uploadRef,
+      loadingRef,
       orderTypeList: [
         { text: '订购', value: '订购' },
         { text: '不可订购', value: '不可订购' },

@@ -21,9 +21,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -135,18 +134,20 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, reactive } from 'vue'
+<script lang="ts">
+import { defineComponent, reactive, ref } from 'vue'
 import useDelete from '@composables/useDelete'
 import useFilter from '@composables/useFilter'
 import useList from '@composables/useList'
 import useSort from '@composables/useSort'
+import useLoading from '@composables/useLoading'
 import { getGuides, deleteGuide } from '@api/guide'
 
 export default defineComponent({
   name: 'Guide',
   inject: ['apiUrl'],
   setup() {
+    const loadingRef = ref(null)
     const { sort, sortJson, sortChange } = useSort()
 
     const listQuery = reactive({
@@ -162,6 +163,7 @@ export default defineComponent({
       getGuides
     )
 
+    useLoading(loadingRef, listLoading)
     const { filterChange } = useFilter(listQuery)
 
     const { selectionChange, handleDelete, multiDelete } = useDelete(
@@ -169,7 +171,7 @@ export default defineComponent({
       refreshList
     )
 
-    const statusFilter = status => {
+    const statusFilter = (status: String) => {
       const statusMap = {
         published: 'success',
         draft: 'info',
@@ -195,6 +197,7 @@ export default defineComponent({
           { min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur' },
         ],
       },
+      loadingRef,
       commentList: [
         { text: '开放', value: false },
         { text: '关闭', value: true },

@@ -71,13 +71,13 @@ export default defineComponent({
     }
     const handleSuccess = (response, file) => {
       let fileSrc = response.data[0].path
-      fileSrc = fileSrc.replace('/public', '')
       const uid = file.uid
       const objKeyArr = Object.keys(listObj)
       for (let i = 0, len = objKeyArr.length; i < len; i++) {
         if (listObj[objKeyArr[i]].uid === uid) {
           // listObj[objKeyArr[i]].url = 'http://106.54.168.208:1016' + fileSrc
-          listObj[objKeyArr[i]].url = apiUrl + fileSrc
+          listObj[objKeyArr[i]].url =
+            import.meta.env.VITE_APP_REAL_API + fileSrc
           listObj[objKeyArr[i]].hasSuccess = true
           return
         }

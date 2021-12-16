@@ -18,9 +18,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -327,7 +326,14 @@ export default defineComponent({
       deleteApi: deletePlant,
       addApi: addPlant,
     }
-    const mixProps = useMix(apiOption, plantFormRef, plantFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      plantFormRef,
+      plantFormData,
+      null,
+      loadingRef
+    )
 
     const seedList = ref([])
     const mixList = ref([])
@@ -378,6 +384,7 @@ export default defineComponent({
           { min: 2, max: 8, message: '长度在 2 到 8 个字符', trigger: 'blur' },
         ],
       },
+      loadingRef,
       seedList,
       mixList,
       growList: [

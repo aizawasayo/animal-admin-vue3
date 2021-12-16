@@ -22,7 +22,7 @@ export default defineComponent({
     },
     id: {
       type: String,
-      default: 'lineChartsCompoents',
+      default: 'lineChartsComponents',
     },
     width: {
       type: String,

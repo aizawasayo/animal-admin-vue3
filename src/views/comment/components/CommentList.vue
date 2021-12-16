@@ -1,9 +1,8 @@
 <template>
   <div class="tabPane-container">
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -71,12 +70,13 @@
 </template>
 
 <script>
-import { defineComponent, reactive, watch, toRefs } from 'vue'
+import { defineComponent, reactive, watch, toRefs, ref } from 'vue'
 import { useStore } from 'vuex'
 import useDelete from '@composables/useDelete'
 import useFilter from '@composables/useFilter'
 import useList from '@composables/useList'
 import useSort from '@composables/useSort'
+import useLoading from '@composables/useLoading'
 import { getComments, deleteComment } from '@api/comment'
 
 export default defineComponent({
@@ -95,6 +95,7 @@ export default defineComponent({
     const { type, queryKey } = toRefs(props)
     const store = useStore()
     const userId = store.getters.userId
+    const loadingRef = ref(null)
 
     const { sort, sortJson, sortChange } = useSort({ created_time: 1 }) // 列表排序
 
@@ -113,6 +114,7 @@ export default defineComponent({
       getComments,
       type
     )
+    useLoading(loadingRef, listLoading)
 
     const { filterChange } = useFilter(listQuery) // 列表筛选
 
@@ -133,6 +135,7 @@ export default defineComponent({
       selectionChange,
       handleDelete,
       multiDelete,
+      loadingRef,
     }
   },
 })

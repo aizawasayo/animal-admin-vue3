@@ -18,8 +18,11 @@ import { defineComponent, watch, ref } from 'vue'
 import { useRouter, useRoute, RouteLocationMatched } from 'vue-router'
 // import * as pathToRegexp from 'path-to-regexp'
 import { compile } from 'path-to-regexp'
+import { ElBreadcrumb, ElBreadcrumbItem } from 'element-plus'
 
 export default defineComponent({
+  name: 'BreadCrumb',
+  components: { ElBreadcrumb, ElBreadcrumbItem },
   setup() {
     const router = useRouter()
     const route = useRoute()

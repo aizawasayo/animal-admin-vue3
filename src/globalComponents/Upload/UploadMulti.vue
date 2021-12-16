@@ -48,7 +48,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, computed, defineComponent, toRefs, watch } from 'vue'
 import { uploadMulti } from '@api/upload'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -60,7 +60,7 @@ export default defineComponent({
   props: {
     list: {
       type: Array,
-      default: () => [],
+      default: [],
     },
     drag: {
       type: Boolean,
@@ -91,7 +91,9 @@ export default defineComponent({
 
     const { uploadMultiSuccess } = useUpload()
 
-    const photoListChange = file => {
+    // 当文件列表有改变时触发，添加文件、上传成功和上传失败时都会被调用。
+    // 我们配置了手动上传，因此只有添加图片时触发
+    const photoListChange = (file: Object) => {
       const typeList = ['image/jpeg', 'image/png', 'image/gif']
       const isTypeValid = typeList.includes(file.raw.type)
       const isLt2M = file.size / 1024 / 1024 < 2
@@ -99,8 +101,11 @@ export default defineComponent({
       if (!isLt2M) return ElMessage.error('图片大小不能超过 2MB!')
       photoList.value.push(file)
     }
-    const filterPhotoList = uploaded => {
-      return uploaded
+
+    // 传入 true 获取【已上传】文件，否则是获取【未上传】文件
+    // 用是否拥有 raw 属性 来判断，有 raw property 就是待上传的
+    const filterPhotoList = (isUploaded?: Boolean) => {
+      return isUploaded
         ? photoList.value.filter(
             item => !Object.prototype.hasOwnProperty.call(item, 'raw')
           )
@@ -109,22 +114,30 @@ export default defineComponent({
           )
     }
 
+    // 表单提交时用来获取文件列表，如有未上传的就在这时上传
     const getUploadedList = async () => {
+      // 获取待上传的文件列表，如果没有就直接返回 photoList 的值
       const toUploadList = filterPhotoList()
       if (toUploadList.length === 0) return photoList.value
+
+      // 有则开始手动上传
       const formData = new FormData()
-      toUploadList.forEach(file =>
+      toUploadList.forEach(file => {
         formData.append('photoSrc', file.raw, file.name)
-      )
+      })
       const { data } = await uploadMulti(formData)
       return filterPhotoList(true).concat(uploadMultiSuccess(data))
     }
+
+    // 点击文件列表中的文件，预览图片
     const handlePreview = file => {
       if (file.src) {
         value.value = file.src
         dialogVisible.value = true
       }
     }
+
+    // 从文件列表删除文件时的回调
     const handleRemove = (file, fileList) => {
       photoList.value = fileList.map(obj => ({ ...obj }))
     }

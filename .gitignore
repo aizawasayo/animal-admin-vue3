@@ -4,3 +4,6 @@ dist
 dist-ssr
 demo
 *.local
+.env.development
+.env.production
+.env.staging

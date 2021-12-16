@@ -24,9 +24,16 @@
 import { computed, getCurrentInstance, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import {
+  ElMessage,
+  ElDropdown,
+  ElDropdownItem,
+  ElDropdownMenu,
+} from 'element-plus'
 
 export default {
+  name: 'SizeSelect',
+  components: { ElDropdown, ElDropdownItem, ElDropdownMenu },
   setup() {
     const store = useStore()
     const router = useRouter()

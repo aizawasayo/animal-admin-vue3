@@ -18,16 +18,15 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
       empty-text="没有相关数据"
-      @selection-change="selection => selectionChange(selection, this)"
-      @filter-change="filters => filterChange(filters, this)"
-      @sort-change="sortInfo => commonApi.sortChange(sortInfo, this)"
+      @selection-change="selection => selectionChange(selection)"
+      @filter-change="filters => filterChange(filters)"
+      @sort-change="sortInfo => sortChange(sortInfo)"
     >
       <el-table-column type="selection" width="36"> </el-table-column>
       <el-table-column align="center" label="序号" width="50">
@@ -195,10 +194,10 @@
       :before-close="closeDialog"
     >
       <el-form
-        ref="insectFormDataRef"
+        ref="insectFormRef"
         :inline="false"
         :model="insectFormData"
-        :rules="insectFormDataRules"
+        :rules="insectFormRules"
         label-width="80px"
       >
         <el-row>
@@ -453,7 +452,14 @@ export default defineComponent({
       deleteApi: deleteInsect,
       addApi: addInsect,
     }
-    const mixProps = useMix(apiOption, insectFormRef, insectFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      insectFormRef,
+      insectFormData,
+      null,
+      loadingRef
+    )
 
     const localeList = ref([])
     const rarityList = ref([])
@@ -491,6 +497,7 @@ export default defineComponent({
           },
         ],
       },
+      loadingRef,
       weatherList: [
         { text: '无限制', value: '' },
         { text: '雨雪天除外', value: '雨雪天除外' },

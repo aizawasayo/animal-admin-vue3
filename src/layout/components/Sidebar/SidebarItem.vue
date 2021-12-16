@@ -47,8 +47,10 @@ import { RouteRecordRaw } from 'vue-router'
 import { isExternal } from '@utils/validate'
 import AppLink from './Link.vue'
 import Item from './Item.vue'
+import { ElMenuItem, ElSubMenu } from 'element-plus'
 
 export default defineComponent({
+  name: 'SidebarItem',
   props: {
     item: {
       type: Object as PropType<RouteRecordRaw>,
@@ -66,7 +68,7 @@ export default defineComponent({
       required: true,
     },
   },
-  components: { Item, AppLink },
+  components: { Item, AppLink, ElMenuItem, ElSubMenu },
   setup(props) {
     const alwaysShowRootMenu = computed(() => {
       if (props.item.meta && props.item.meta.alwaysShow) {

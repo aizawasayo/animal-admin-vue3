@@ -18,7 +18,6 @@ import {
 import resize from '@components/charts/mixins/resize'
 import { init, EChartsOption } from 'echarts'
 export default defineComponent({
-  name: 'BarChart',
   props: {
     className: {
       type: String,
@@ -33,7 +32,7 @@ export default defineComponent({
       default: '300px',
     },
   },
-  setup() {
+  setup(props) {
     const { mounted, chart, beforeDestroy, activated, deactivated } = resize()
 
     const animationDuration = 6000

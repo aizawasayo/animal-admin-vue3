@@ -21,9 +21,8 @@
       </el-col>
     </el-row>
     <el-table
-      v-loading="listLoading"
+      ref="loadingRef"
       :data="list"
-      element-loading-text="加载中"
       border
       fit
       highlight-current-row
@@ -430,7 +429,14 @@ export default defineComponent({
       deleteApi: deleteFish,
       addApi: addFish,
     }
-    const mixProps = useMix(apiOption, fishFormRef, fishFormData)
+    const loadingRef = ref(null)
+    const mixProps = useMix(
+      apiOption,
+      fishFormRef,
+      fishFormData,
+      null,
+      loadingRef
+    )
 
     const localeList = ref([])
     const shadowList = ref([])
@@ -474,6 +480,7 @@ export default defineComponent({
         ],
         price: [{ required: true, message: '请输入价格', trigger: 'blur' }],
       },
+      loadingRef,
       localeList,
       shadowList,
       unlockConditionList,

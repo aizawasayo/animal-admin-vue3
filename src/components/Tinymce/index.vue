@@ -13,7 +13,7 @@
       tinymceScriptSrc="tinymce/tinymce.min.js"
     />
     <div class="editor-custom-btn-container">
-      <editorImage
+      <editor-image
         color="#4FC08D"
         class="editor-upload-btn"
         @successCBK="imageSuccessCBK"
@@ -89,7 +89,7 @@ export default defineComponent({
       min_height: props.height,
       // menubar: menubar,
       plugins: plugins,
-      toolbar: props.toolbar,
+      toolbar: toolbar,
       toolbar_sticky: true,
       toolbar_mode: 'wrap', // 'sliding'
       content_style:

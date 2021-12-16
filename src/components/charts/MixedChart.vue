@@ -182,7 +182,7 @@ export default defineComponent({
             stack: 'total',
             itemStyle: {
               color: 'rgba(0,191,183,1)',
-              barBorderRadius: 0,
+              borderRadius: 0,
               label: {
                 show: true,
                 position: 'top',
@@ -203,7 +203,7 @@ export default defineComponent({
             symbol: 'circle',
             itemStyle: {
               color: 'rgba(252,230,48,1)',
-              barBorderRadius: 0,
+              borderRadius: 0,
               label: {
                 show: true,
                 position: 'top',

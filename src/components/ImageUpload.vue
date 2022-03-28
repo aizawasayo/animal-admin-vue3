@@ -3,12 +3,13 @@
   <div class="upload-container">
     <el-upload
       name="avatar"
+      :action="`${apiUrl}/admin/single/upload`"
       :multiple="false"
       :show-file-list="false"
+      :before-upload="beforeUpload"
       :on-success="handleImageSuccess"
       class="image-uploader"
       drag
-      :action="uploadUrl"
     >
       <i class="el-icon-upload" />
       <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -34,6 +35,8 @@
 
 <script>
 import { computed, defineComponent, inject } from 'vue'
+import useUpload from '@composables/useUpload'
+
 export default defineComponent({
   name: 'ImageUpload',
   props: {
@@ -42,24 +45,26 @@ export default defineComponent({
       default: '',
     },
   },
+  inject: ['apiUrl'],
   emits: ['update:modelValue'],
   setup(props, { emit }) {
-    const apiUrl = inject('apiUrl')
+    const realUrl = inject('realUrl')
 
     const removeImage = () => {
       emit('update:modelValue', '')
     }
 
+    const { uploadSuccess, beforeUpload } = useUpload()
+
     const handleImageSuccess = response => {
-      const fileSrc = response.data.path
-      emit('update:modelValue', fileSrc)
+      emit('update:modelValue', uploadSuccess(response))
     }
 
     return {
-      uploadUrl: computed(() => apiUrl + '/admin/single/upload'),
       imageUrl: computed(() =>
-        props.modelValue ? apiUrl + props.modelValue : ''
+        props.modelValue ? realUrl + props.modelValue : ''
       ),
+      beforeUpload,
       handleImageSuccess,
       removeImage,
     }

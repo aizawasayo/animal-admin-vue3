@@ -15,7 +15,21 @@ import {
   nextTick,
 } from 'vue'
 import resize from '@components/charts/mixins/resize'
-import { init } from 'echarts'
+import * as echarts from 'echarts/core'
+import {
+  TooltipComponent,
+  TooltipComponentOption,
+  LegendComponent,
+  LegendComponentOption,
+} from 'echarts/components'
+import { RadarChart, RadarSeriesOption } from 'echarts/charts'
+import { CanvasRenderer } from 'echarts/renderers'
+
+echarts.use([TooltipComponent, LegendComponent, RadarChart, CanvasRenderer])
+
+type EChartsOption = echarts.ComposeOption<
+  TooltipComponentOption | LegendComponentOption | RadarSeriesOption
+>
 
 const animationDuration = 3000
 export default defineComponent({
@@ -38,7 +52,7 @@ export default defineComponent({
     const { mounted, chart, beforeDestroy, activated, deactivated } = resize()
 
     const initChart = () => {
-      const radarChart = init(
+      const radarChart = echarts.init(
         document.getElementById('homeRadarCharts') as HTMLDivElement,
         'macarons'
       )
@@ -107,7 +121,7 @@ export default defineComponent({
             animationDuration: animationDuration,
           },
         ],
-      } as any)
+      } as EChartsOption)
       chart.value = radarChart
     }
 

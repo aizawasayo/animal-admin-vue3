@@ -44,7 +44,7 @@
         <template #default="scope">
           <img
             v-if="scope.row.photoSrc"
-            :src="apiUrl + scope.row.photoSrc"
+            :src="realUrl + scope.row.photoSrc"
             width="25"
             height="25"
           />
@@ -412,7 +412,7 @@ import useMix from '@composables/useMix'
 
 export default defineComponent({
   name: 'Recipe',
-  inject: ['apiUrl'],
+  inject: ['realUrl'],
   setup() {
     const recipeFormRef = ref(null)
     const recipeFormData = reactive({

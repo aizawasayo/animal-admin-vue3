@@ -21,7 +21,7 @@
         <template #default="scope">
           <img
             v-if="scope.row.photoSrc.length > 0 && scope.row.photoSrc[0].src"
-            :src="apiUrl + scope.row.photoSrc[0].src"
+            :src="realUrl + scope.row.photoSrc[0].src"
             width="25"
             height="25"
           />
@@ -86,7 +86,7 @@ import { getDesignList, deleteDesign } from '@api/design'
 
 export default defineComponent({
   name: 'DesignList',
-  inject: ['apiUrl'],
+  inject: ['realUrl'],
   props: {
     type: {
       type: String,

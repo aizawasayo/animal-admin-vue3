@@ -38,7 +38,7 @@
         <template #default="scope">
           <img
             v-if="scope.row.photoSrc.length > 0 && scope.row.photoSrc[0].src"
-            :src="apiUrl + scope.row.photoSrc[0].src"
+            :src="realUrl + scope.row.photoSrc[0].src"
             width="25"
             height="25"
           />
@@ -199,7 +199,7 @@ import useMix from '@composables/useMix'
 
 export default defineComponent({
   name: 'Record',
-  inject: ['apiUrl'],
+  inject: ['realUrl'],
   setup() {
     const recordFormRef = ref(null)
     const recordFormData = reactive({

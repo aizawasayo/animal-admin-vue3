@@ -2,8 +2,8 @@
 <template>
   <div class="upload-container">
     <el-upload
-      :action="uploadUrl"
       name="avatar"
+      :action="`${apiUrl}/admin/single/upload`"
       :multiple="false"
       :show-file-list="false"
       :before-upload="beforeUpload"
@@ -83,7 +83,7 @@
 </template>
 
 <script>
-import { ref, computed, defineComponent, toRefs } from 'vue'
+import { ref, computed, defineComponent, toRefs, inject } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import useUpload from '@composables/useUpload'
 
@@ -103,21 +103,14 @@ export default defineComponent({
       default: '35%',
     },
   },
+  inject: ['apiUrl'],
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     const { modelValue, drag } = toRefs(props)
+    const realUrl = inject('realUrl')
     const dialogVisible = ref(false)
-    const uploadUrl = computed(
-      () => import.meta.env.VITE_APP_BASE_API + '/admin/single/upload'
-    )
-    const imageUrl = computed(() =>
-      modelValue.value
-        ? import.meta.env.VITE_APP_BASE_API + modelValue.value
-        : ''
-    )
-    const uploadClass = computed(() => (drag.value ? 'image-uploader' : ''))
 
-    const { uploadSuccess } = useUpload()
+    const { uploadSuccess, beforeUpload } = useUpload()
 
     const removeImage = () => {
       ElMessageBox.confirm('确定移除已上传的图片？', '提示').then(() => {
@@ -133,26 +126,16 @@ export default defineComponent({
     const handleUploadRemove = () => {
       emit('update:modelValue', '')
     }
-    const beforeUpload = file => {
-      const typeList = ['image/jpeg', 'image/png', 'image/gif']
-      const isTypeValid = typeList.includes(file.type)
-      const isLt2M = file.size / 1024 / 1024 < 2
-      if (!isTypeValid) {
-        ElMessage.error('图片格式只能是 JPG/PNG/GIF!')
-      }
-      if (!isLt2M) {
-        ElMessage.error('图片大小不能超过 2MB!')
-      }
-      return isTypeValid && isLt2M
-    }
+
     const handlePreview = () => {
       dialogVisible.value = true
     }
     return {
       dialogVisible,
-      uploadUrl,
-      imageUrl,
-      uploadClass,
+      imageUrl: computed(() =>
+        modelValue.value ? realUrl + modelValue.value : ''
+      ),
+      uploadClass: computed(() => (drag.value ? 'image-uploader' : '')),
       removeImage,
       handleUploadSuccess,
       handleUploadError,

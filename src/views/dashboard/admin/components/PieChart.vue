@@ -16,7 +16,32 @@ import {
   nextTick,
 } from 'vue'
 import resize from '@components/charts/mixins/resize'
-import { init, EChartsOption } from 'echarts'
+import * as echarts from 'echarts/core'
+import {
+  TooltipComponent,
+  TooltipComponentOption,
+  LegendComponent,
+  LegendComponentOption,
+} from 'echarts/components'
+import { PieChart, PieSeriesOption } from 'echarts/charts'
+// 标签自动布局，全局过渡动画等特性
+import { LabelLayout, UniversalTransition } from 'echarts/features'
+// 引入 Canvas 渲染器，注意引入 CanvasRenderer 或者 SVGRenderer 是必须的一步
+import { CanvasRenderer } from 'echarts/renderers'
+
+echarts.use([
+  TooltipComponent,
+  LegendComponent,
+  PieChart,
+  LabelLayout,
+  CanvasRenderer,
+  // UniversalTransition,
+])
+
+type EChartsOption = echarts.ComposeOption<
+  TooltipComponentOption | LegendComponentOption | PieSeriesOption
+>
+
 export default defineComponent({
   name: 'PieChart',
   props: {
@@ -37,7 +62,7 @@ export default defineComponent({
     const { mounted, chart, beforeDestroy, activated, deactivated } = resize()
 
     const initChart = () => {
-      const pieChart = init(
+      const pieChart = echarts.init(
         document.getElementById('homePieCharts') as HTMLDivElement,
         'macarons'
       )

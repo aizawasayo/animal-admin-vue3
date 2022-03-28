@@ -70,7 +70,7 @@ router.beforeEach(async (to, from, next) => {
           console.warn(error)
           // remove token and go to login page to re-login
           await store.dispatch('user/resetToken')
-          ElMessage.error(error.Message || 'Has Error')
+          ElMessage.error('登录已过期，请重新登录！')
           next(`/login?redirect=${to.path}`)
           NProgress.done()
         }

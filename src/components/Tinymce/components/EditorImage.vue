@@ -13,6 +13,7 @@
     <el-dialog v-model="dialogVisible">
       <el-upload
         name="photoSrc"
+        :action="`${apiUrl}/admin/upload`"
         multiple
         :file-list="fileList"
         show-file-list
@@ -20,7 +21,6 @@
         :on-success="handleSuccess"
         :before-upload="beforeUpload"
         class="editor-slide-upload"
-        :action="uploadUrl"
         list-type="picture-card"
       >
         <el-button size="small" type="primary"> 点击上传 </el-button>
@@ -32,9 +32,9 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed, reactive, inject } from 'vue'
-import { useStore } from 'vuex'
+import { defineComponent, ref, reactive, inject } from 'vue'
 import { ElMessage } from 'element-plus'
+import { compressAccurately } from 'image-conversion'
 
 export default defineComponent({
   name: 'EditorImage',
@@ -44,12 +44,12 @@ export default defineComponent({
       default: '#4FC08D',
     },
   },
+  inject: ['apiUrl'],
   setup(props, { emit }) {
-    const store = useStore()
     const dialogVisible = ref(false)
     const listObj = reactive({})
     const fileList = ref([])
-    const apiUrl = inject('apiUrl')
+    const realUrl = inject('realUrl')
 
     const checkAllSuccess = () => {
       return Object.keys(listObj).every(item => listObj[item].hasSuccess)
@@ -75,9 +75,7 @@ export default defineComponent({
       const objKeyArr = Object.keys(listObj)
       for (let i = 0, len = objKeyArr.length; i < len; i++) {
         if (listObj[objKeyArr[i]].uid === uid) {
-          // listObj[objKeyArr[i]].url = 'http://106.54.168.208:1016' + fileSrc
-          listObj[objKeyArr[i]].url =
-            import.meta.env.VITE_APP_REAL_API + fileSrc
+          listObj[objKeyArr[i]].url = realUrl + fileSrc
           listObj[objKeyArr[i]].hasSuccess = true
           return
         }
@@ -98,24 +96,41 @@ export default defineComponent({
       const fileName = file.uid
       listObj[fileName] = {}
       return new Promise((resolve, reject) => {
-        const img = new Image()
-        img.src = _URL.createObjectURL(file)
-        img.onload = function () {
-          listObj[fileName] = {
-            hasSuccess: false,
-            uid: file.uid,
-            width: props.width,
-            height: props.height,
-          }
+        listObj[fileName] = {
+          hasSuccess: false,
+          uid: file.uid,
+          width: props.width,
+          height: props.height,
         }
-        resolve(true)
+        if (file.size / 1024 > 200) {
+          // 大于 400 kb 就压缩
+          compressAccurately(file, 100).then(resBlob => {
+            resolve(resBlob)
+          })
+        } else {
+          // 直接返回图片
+          resolve(file)
+        }
       })
+
+      // return new Promise((resolve, reject) => {
+      //   const img = new Image()
+      //   img.src = _URL.createObjectURL(file)
+      //   img.onload = function () {
+      //     listObj[fileName] = {
+      //       hasSuccess: false,
+      //       uid: file.uid,
+      //       width: props.width,
+      //       height: props.height,
+      //     }
+      //   }
+      //   resolve(true)
+      // })
     }
     return {
       dialogVisible,
       listObj,
       fileList,
-      uploadUrl: computed(() => store.getters.uploadUrl),
       checkAllSuccess,
       handleSubmit,
       handleSuccess,

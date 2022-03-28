@@ -38,7 +38,7 @@
         <template #default="scope">
           <img
             v-if="scope.row.photoSrc"
-            :src="apiUrl + scope.row.photoSrc"
+            :src="realUrl + scope.row.photoSrc"
             width="25"
             height="25"
           />
@@ -425,7 +425,7 @@ import usePeriodProcess from '@composables/usePeriodProcess'
 
 export default defineComponent({
   name: 'Insect',
-  inject: ['apiUrl', 'monthList', 'periodOptions'],
+  inject: ['realUrl', 'monthList', 'periodOptions'],
   setup() {
     const insectFormRef = ref(null)
     const insectFormData = reactive({

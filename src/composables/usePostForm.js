@@ -34,11 +34,11 @@ export default function usePostFrom(formRef, formData, isUserPage, uploadRef) {
 
   // 包含批量上传组件的表单提交
   const postUploadForm = (postApi, success, fail, dataProcess) => {
-    formRef.value.validate(valid => {
-      uploadRef.value.getUploadedList().then(uploads => {
-        formData.photoSrc = uploads.map(obj => ({
-          ...obj,
-        }))
+    uploadRef.value.getUploadedList().then(uploads => {
+      formData.photoSrc = uploads.map(obj => ({
+        ...obj,
+      }))
+      formRef.value.validate(valid => {
         if (!valid) return ElMessage.error('请修改有误的表单项')
         const postData = Object.assign({}, formData)
         if (dataProcess) dataProcess(postData)

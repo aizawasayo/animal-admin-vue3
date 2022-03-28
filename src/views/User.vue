@@ -41,7 +41,7 @@
         <template #default="scope">
           <img
             v-if="scope.row.avatar"
-            :src="apiUrl + scope.row.avatar"
+            :src="realUrl + scope.row.avatar"
             width="25"
             height="25"
           />
@@ -287,7 +287,7 @@ import useMix from '@composables/useMix'
 
 export default defineComponent({
   name: 'User',
-  inject: ['apiUrl'],
+  inject: ['realUrl'],
   setup() {
     // 用户信息表单
     const userFormRef = ref(null)

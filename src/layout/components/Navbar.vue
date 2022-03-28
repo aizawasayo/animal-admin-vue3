@@ -26,7 +26,7 @@
       >
         <div class="avatar-wrapper">
           <img
-            :src="apiUrl + avatar + '?imageView2/1/w/80/h/80'"
+            :src="realUrl + avatar + '?imageView2/1/w/80/h/80'"
             class="user-avatar"
           />
           <el-icon :size="14" style="margin: 0 6px">
@@ -82,7 +82,7 @@ export default {
     SizeSelect,
     CaretBottom,
   },
-  inject: ['apiUrl'],
+  inject: ['realUrl'],
   setup() {
     const store = useStore()
     const router = useRouter()

@@ -105,7 +105,7 @@ const actions = {
         .then(() => {
           commit('SET_TOKEN', '')
           commit('SET_ROLES', [])
-          removeToken() // must remove  token  first
+          removeToken() // must remove token first
           removeUserId()
           resetRouter()
           commit('RESET_STATE')
@@ -144,7 +144,6 @@ const actions = {
     const { roles } = await dispatch('getInfo')
 
     // 如果是管理员则不删除动态添加的路由
-    console.log()
     resetRouter()
 
     // generate accessible routes map based on roles

@@ -95,7 +95,7 @@ import UpdateTimeline from './components/UpdateTimeline.vue'
 
 export default {
   name: 'AdminDashboard',
-  inject: ['apiUrl'],
+  inject: ['realUrl'],
   components: {
     ElRow,
     ElCol,

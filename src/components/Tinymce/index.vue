@@ -4,13 +4,20 @@
     class="tinymce-container"
     :style="{ width: containerWidth }"
   >
-    <tinymce-editor
+    <!-- <tinymce-editor
       :id="tinymceId"
       initialValue="<p>Initial editor content</p>"
       v-model="contentValue"
       :init="initOptions"
       apiKey="dkb23i61in9c5mdp72yr4mb1fo8t8117t21dnt8k8hpogn2n"
-      tinymceScriptSrc="tinymce/tinymce.min.js"
+      tinymceScriptSrc="https://cdn.jsdelivr.net/npm/tinymce@5.9.2/tinymce.min.js"
+    /> -->
+    <tinymce-editor
+      :id="tinymceId"
+      initialValue="<p>Initial editor content</p>"
+      v-model="contentValue"
+      :init="initOptions"
+      tinymceScriptSrc="/tinymce/tinymce.min.js"
     />
     <div class="editor-custom-btn-container">
       <editor-image
@@ -27,7 +34,11 @@ import { defineComponent, ref, computed } from 'vue'
 import EditorImage from './components/EditorImage.vue'
 import TinymceEditor from '@tinymce/tinymce-vue'
 import { getTinymce } from '@tinymce/tinymce-vue/lib/es2015/main/ts/TinyMCE.js'
-import { filePickerCallback, imageUploadHandler } from './uploadHandler'
+import {
+  filePickerCallback,
+  imageUploadHandler,
+  uploadHandler,
+} from './uploadHandler'
 import { menubar, plugins, toolbar } from './config'
 
 export default defineComponent({
@@ -78,10 +89,10 @@ export default defineComponent({
     const fullscreen = ref(false)
 
     const initOptions = ref({
-      base_url: 'tinymce',
+      // base_url: '/tinymce',
       language: 'zh_CN',
-      // content_css: 'tinymce/skins/content/animal/content.min.css',
-      // skin_url: 'tinymce/skins/ui/animal',
+      // language_url: '/tinymce/langs/zh_CN.js',
+      // skin_url: '/tinymce/skins/ui/animal',
       skin: 'animal',
       content_css: 'animal',
       body_class: 'panel-body',
@@ -93,7 +104,7 @@ export default defineComponent({
       toolbar_sticky: true,
       toolbar_mode: 'wrap', // 'sliding'
       content_style:
-        'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+        'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }, image: {max-width: 100%;}',
       branding: false, // tiny技术支持信息是否显示
       // resize: false,
       link_title: false,
@@ -114,10 +125,10 @@ export default defineComponent({
       },
       image_title: true,
       // #参考 https://www.tiny.cloud/docs/configure/file-image-upload/#file_picker_callback
-      file_picker_callback: filePickerCallback,
+      file_picker_callback: filePickerCallback, // 选择文件后的处理
       // images_upload_url: apiUrl + '/admin/single/upload',
       // #参考 https://www.tiny.cloud/docs/configure/file-image-upload/#images_upload_handler
-      images_upload_handler: imageUploadHandler,
+      images_upload_handler: uploadHandler, // 自定义文件上传函数
       setup: (editor: any) => {
         // tinymce 实例渲染之前的回调
         editor.on('FullscreenStateChanged', (e: any) => {

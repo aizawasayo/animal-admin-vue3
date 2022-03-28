@@ -277,8 +277,8 @@ export default defineComponent({
     const userId = computed(() => store.getters.userId)
     const roles = computed(() => store.getters.roles)
 
-    const isLineBL = computed(() => (tradeFormData.isLineup ? true : false))
-    const isAutoBL = computed(() => (tradeFormData.isAuto ? true : false))
+    const isLineBL = computed(() => tradeFormData.isLineup)
+    const isAutoBL = computed(() => tradeFormData.isAuto)
     const contact = computed(() =>
       tradeFormData.contact !== 'SW'
         ? '联系方式'

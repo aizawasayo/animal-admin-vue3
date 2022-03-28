@@ -32,7 +32,7 @@ export default {
     inactiveClass: { type: String },
   },
   setup(props) {
-    console.log(props)
+    // console.log(props)
     const { navigate, href, route, isActive, isExactActive } = useLink(
       toRef(props, 'to')
     )

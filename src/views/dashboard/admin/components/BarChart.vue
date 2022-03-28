@@ -16,7 +16,37 @@ import {
   nextTick,
 } from 'vue'
 import resize from '@components/charts/mixins/resize'
-import { init, EChartsOption } from 'echarts'
+import * as echarts from 'echarts/core'
+import {
+  TooltipComponent,
+  TooltipComponentOption,
+  GridComponent,
+  GridComponentOption,
+  // LegendComponent,
+  // LegendComponentOption,
+} from 'echarts/components'
+import { BarChart, BarSeriesOption } from 'echarts/charts'
+// import { UniversalTransition } from 'echarts/features'
+import { CanvasRenderer } from 'echarts/renderers'
+
+echarts.use([
+  TooltipComponent,
+  GridComponent,
+  // LegendComponent,
+  BarChart,
+  CanvasRenderer,
+  // UniversalTransition,
+])
+
+type EChartsOption = echarts.ComposeOption<
+  // | TitleComponentOption
+  // | ToolboxComponentOption
+  | TooltipComponentOption
+  | GridComponentOption
+  // | LegendComponentOption
+  | BarSeriesOption
+>
+
 export default defineComponent({
   props: {
     className: {
@@ -37,7 +67,7 @@ export default defineComponent({
 
     const animationDuration = 6000
     const initChart = () => {
-      const barChart = init(
+      const barChart = echarts.init(
         document.getElementById('homebarcharts') as HTMLDivElement,
         'macarons'
       )
@@ -48,6 +78,7 @@ export default defineComponent({
             type: 'shadow',
           },
         },
+        // legend: { left: 'center', bottom: '10' },
         grid: {
           top: 10,
           left: '2%',
@@ -81,6 +112,7 @@ export default defineComponent({
             // barWidth: '60%',
             data: [79, 52, 200, 334, 390, 330, 220],
             animationDuration,
+            // label: { show: true },
           },
           {
             name: 'pageB',

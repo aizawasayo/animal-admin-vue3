@@ -301,12 +301,11 @@ export default defineComponent({
     const roles = computed(() => store.getters.roles)
 
     const isLineBL = computed(() =>
-      turnipFormData.isLineup === true &&
-      turnipFormData.exchangeType === '我有价'
+      turnipFormData.isLineup && turnipFormData.exchangeType === '我有价'
         ? true
         : false
     )
-    const isAutoBL = computed(() => (turnipFormData.isAuto ? true : false))
+    const isAutoBL = computed(() => turnipFormData.isAuto)
     const isPrice = computed(() =>
       turnipFormData.exchangeType === '我有菜' ? false : true
     )

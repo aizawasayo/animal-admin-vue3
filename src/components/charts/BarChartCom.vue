@@ -12,7 +12,43 @@ import {
   nextTick,
 } from 'vue'
 import resize from './mixins/resize'
-import { init, EChartsOption } from 'echarts'
+import * as echarts from 'echarts/core'
+import {
+  TitleComponent,
+  TitleComponentOption,
+  ToolboxComponent,
+  ToolboxComponentOption,
+  TooltipComponent,
+  TooltipComponentOption,
+  GridComponent,
+  GridComponentOption,
+  LegendComponent,
+  LegendComponentOption,
+} from 'echarts/components'
+import { BarChart, BarSeriesOption } from 'echarts/charts'
+import { UniversalTransition } from 'echarts/features'
+import { CanvasRenderer } from 'echarts/renderers'
+
+echarts.use([
+  TitleComponent,
+  ToolboxComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  BarChart,
+  CanvasRenderer,
+  UniversalTransition,
+])
+
+type EChartsOption = echarts.ComposeOption<
+  | TitleComponentOption
+  | ToolboxComponentOption
+  | TooltipComponentOption
+  | GridComponentOption
+  | LegendComponentOption
+  | BarSeriesOption
+>
+
 export default defineComponent({
   props: {
     className: {
@@ -38,7 +74,9 @@ export default defineComponent({
     const { mounted, chart, beforeDestroy, activated, deactivated } = resize()
 
     const initChart = () => {
-      const barChart = init(document.getElementById(props.id) as HTMLDivElement)
+      const barChart = echarts.init(
+        document.getElementById(props.id) as HTMLDivElement
+      )
       const xAxisData: string[] = []
       const data: number[] = []
       const data2: number[] = []

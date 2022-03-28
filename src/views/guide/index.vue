@@ -41,7 +41,7 @@
         <template #default="scope">
           <img
             v-if="scope.row.image_uri"
-            :src="apiUrl + scope.row.image_uri"
+            :src="realUrl + scope.row.image_uri"
             width="25"
             height="25"
           />
@@ -145,7 +145,7 @@ import { getGuides, deleteGuide } from '@api/guide'
 
 export default defineComponent({
   name: 'Guide',
-  inject: ['apiUrl'],
+  inject: ['realUrl'],
   setup() {
     const loadingRef = ref(null)
     const { sort, sortJson, sortChange } = useSort()

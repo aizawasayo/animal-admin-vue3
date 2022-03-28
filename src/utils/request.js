@@ -20,8 +20,7 @@ service.interceptors.request.use(
     if (store.getters.token) {
       // let each request carry token
       // ['X-Token'] is a custom headers key
-      // please modify it according to the actual situation
-      config.headers['X-Token'] = getToken()
+      config.headers['Authorization'] = `Bearer ${getToken()}`
     }
     return config
   },
@@ -47,7 +46,7 @@ service.interceptors.response.use(
       // 服务端自定义错误信息字段为 message
       // ElMessage({ message: res.message || 'Error', type: 'error', duration: 5 * 1000 })
       // 508: Illegal token; 512: Other clients logged in; 514: Token expired;
-      if (statusCode === 508 || statusCode === 512 || statusCode === 514) {
+      if ([508, 512, 514, 401, 403].includes(statusCode)) {
         // to re-login
         ElMessageBox.confirm(
           '你已经登出了账户, 你可以关闭这个页面，或者重新登录',
@@ -70,7 +69,6 @@ service.interceptors.response.use(
   },
   error => {
     console.log('请求/响应失败：' + error) // for debug
-    ElMessage({ message: error.message, type: 'error', duration: 15 * 1000 })
     return Promise.reject(error)
   }
 )

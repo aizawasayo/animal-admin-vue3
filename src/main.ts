@@ -20,7 +20,10 @@ const app = createApp(App).use(router).use(store)
 app.config.globalProperties.$filters = filters
 // app.config.compilerOptions.isCustomElement = tag => tag.startsWith('com-')
 
+// 代理 api
 app.provide('apiUrl', import.meta.env.VITE_APP_BASE_API)
+// 图片不需要跨域，用真实 api
+app.provide('realUrl', import.meta.env.VITE_APP_REAL_API)
 app.provide('update_time', dayjs().format('YYYY-M-D HH:mm:ss'))
 defineConstant(app)
 

@@ -116,7 +116,6 @@ export default defineComponent({
     )
 
     const handlePost = () => {
-      console.log(uploadRef.value)
       if (uploadRef.value.photoList.length === 0)
         return ElMessage.error('请上传图片！')
       postUploadForm(

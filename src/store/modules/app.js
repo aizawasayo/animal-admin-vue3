@@ -10,7 +10,6 @@ const state = {
   device: 'desktop',
   size: Cookies.get('size') || 'medium',
   zIndex: Cookies.get('zIndex') || 3000,
-  uploadUrl: import.meta.env.VITE_APP_BASE_API + '/admin/upload', // 批量上传地址
 }
 
 const mutations = {

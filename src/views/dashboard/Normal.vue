@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-editor-container">
     <div class="clearfix">
-      <pan-thumb :image="apiUrl + avatar" style="float: left">
+      <pan-thumb :image="realUrl + avatar" style="float: left">
         Your roles:
         <span v-for="item in roles" :key="item" class="info-roles">{{
           item
@@ -33,6 +33,7 @@ export default defineComponent({
     PanThumb,
     GithubCorner,
   },
+  inject: ['realUrl'],
   setup() {
     const emptyGif =
       'https://wpimg.wallstcn.com/0e03b7da-db9e-4819-ba10-9016ddfdaed3'

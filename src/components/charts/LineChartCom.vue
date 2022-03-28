@@ -12,8 +12,44 @@ import {
   nextTick,
 } from 'vue'
 import resize from './mixins/resize'
-import { init, EChartsOption } from 'echarts'
-import * as echarts from 'echarts'
+// import { init, EChartsOption } from 'echarts'
+import * as echarts from 'echarts/core'
+import {
+  TitleComponent,
+  TitleComponentOption,
+  ToolboxComponent,
+  ToolboxComponentOption,
+  TooltipComponent,
+  TooltipComponentOption,
+  GridComponent,
+  GridComponentOption,
+  LegendComponent,
+  LegendComponentOption,
+} from 'echarts/components'
+import { LineChart, LineSeriesOption } from 'echarts/charts'
+import { UniversalTransition } from 'echarts/features'
+import { CanvasRenderer } from 'echarts/renderers'
+
+echarts.use([
+  TitleComponent,
+  ToolboxComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  LineChart,
+  CanvasRenderer,
+  UniversalTransition,
+])
+
+type EChartsOption = echarts.ComposeOption<
+  | TitleComponentOption
+  | ToolboxComponentOption
+  | TooltipComponentOption
+  | GridComponentOption
+  | LegendComponentOption
+  | LineSeriesOption
+>
+
 export default defineComponent({
   props: {
     className: {
@@ -38,8 +74,10 @@ export default defineComponent({
   setup(props) {
     const { mounted, chart, beforeDestroy, activated, deactivated } = resize()
     const initChart = () => {
-      const barChart = init(document.getElementById(props.id) as HTMLDivElement)
-      barChart.setOption({
+      const lineChart = echarts.init(
+        document.getElementById(props.id) as HTMLDivElement
+      )
+      lineChart.setOption({
         backgroundColor: '#394056',
         title: {
           top: 20,
@@ -239,7 +277,7 @@ export default defineComponent({
           },
         ],
       } as EChartsOption)
-      chart.value = barChart
+      chart.value = lineChart
     }
 
     onMounted(() => {

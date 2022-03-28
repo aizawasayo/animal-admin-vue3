@@ -41,7 +41,7 @@
         <template #default="scope">
           <img
             v-if="scope.row.photoSrc.length > 0 && scope.row.photoSrc[0].src"
-            :src="apiUrl + scope.row.photoSrc[0].src"
+            :src="realUrl + scope.row.photoSrc[0].src"
             width="25"
             height="25"
           />
@@ -241,7 +241,7 @@ import getOption from '@utils/get-option'
 
 export default defineComponent({
   name: 'Artwork',
-  inject: ['apiUrl'],
+  inject: ['realUrl'],
   setup() {
     const artworkFormRef = ref(null)
     const artworkFormData = reactive({

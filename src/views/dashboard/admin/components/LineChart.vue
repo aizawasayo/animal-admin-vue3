@@ -18,7 +18,42 @@ import {
   watchEffect,
 } from 'vue'
 import resize from '@components/charts/mixins/resize'
-import { init, EChartsOption } from 'echarts'
+import * as echarts from 'echarts/core'
+import {
+  // TitleComponent,
+  // TitleComponentOption,
+  ToolboxComponent,
+  ToolboxComponentOption,
+  TooltipComponent,
+  TooltipComponentOption,
+  GridComponent,
+  GridComponentOption,
+  LegendComponent,
+  LegendComponentOption,
+} from 'echarts/components'
+import { LineChart, LineSeriesOption } from 'echarts/charts'
+import { UniversalTransition } from 'echarts/features'
+import { CanvasRenderer } from 'echarts/renderers'
+
+echarts.use([
+  // TitleComponent,
+  ToolboxComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+  LineChart,
+  CanvasRenderer,
+  UniversalTransition,
+])
+
+type EChartsOption = echarts.ComposeOption<
+  // | TitleComponentOption
+  | ToolboxComponentOption
+  | TooltipComponentOption
+  | GridComponentOption
+  | LegendComponentOption
+  | LineSeriesOption
+>
 
 export interface LineChartData {
   expectedData: number[]
@@ -64,6 +99,11 @@ export default defineComponent({
             bottom: 20,
             top: 30,
             containLabel: true,
+          },
+          toolbox: {
+            feature: {
+              saveAsImage: {},
+            },
           },
           tooltip: {
             trigger: 'axis',
@@ -126,7 +166,7 @@ export default defineComponent({
     })
 
     const initChart = () => {
-      const lineChart = init(
+      const lineChart = echarts.init(
         document.getElementById('homeLineCharts') as HTMLDivElement,
         'macarons'
       )

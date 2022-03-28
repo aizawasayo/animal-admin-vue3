@@ -6,7 +6,7 @@
       />
     </div>
     <div style="position: relative">
-      <pan-thumb :image="apiUrl + avatar" class="panThumb" />
+      <pan-thumb :image="realUrl + avatar" class="panThumb" />
       <Mallki class="mallki-text" text="vue-typescript-admin" />
       <div style="padding-top: 35px" class="progress-item">
         <span>Vue</span>
@@ -35,7 +35,7 @@ import PanThumb from '@components/PanThumb.vue'
 import Mallki from '@components/text-hover-effect/Mallki.vue'
 export default defineComponent({
   name: 'BoxCard',
-  inject: ['apiUrl'],
+  inject: ['realUrl'],
   components: {
     PanThumb,
     Mallki,

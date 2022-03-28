@@ -3,7 +3,6 @@ const getters = {
   size: state => state.app.size,
   device: state => state.app.device,
   zIndex: state => state.app.zIndex,
-  uploadUrl: state => state.app.uploadUrl,
   visitedViews: state => state.tagsView.visitedViews,
   cachedViews: state => state.tagsView.cachedViews,
   token: state => state.user.token,

@@ -2,8 +2,8 @@
 <template>
   <div class="upload-container">
     <el-upload
-      :action="`${apiUrl}/admin/upload`"
       name="photoSrc"
+      :action="`${apiUrl}/admin/upload`"
       with-credentials
       :show-file-list="true"
       :file-list="photoList"
@@ -49,10 +49,11 @@
 </template>
 
 <script lang="ts">
-import { ref, computed, defineComponent, toRefs, watch } from 'vue'
+import { ref, computed, defineComponent, toRefs, watch, inject } from 'vue'
 import { uploadMulti } from '@api/upload'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import useUpload from '@composables/useUpload'
+import { compressFile } from '@/utils/compress'
 
 export default defineComponent({
   name: 'UploadMulti',
@@ -73,11 +74,12 @@ export default defineComponent({
   },
   setup(props) {
     const { list, drag, dialogWidth } = toRefs(props)
+    const realUrl = inject('realUrl')
     const value = ref('')
     const photoList = ref([])
     const dialogVisible = ref(false)
     const previewUrl = computed(() =>
-      value.value ? import.meta.env.VITE_APP_BASE_API + value.value : ''
+      value.value ? realUrl + value.value : ''
     )
     const uploadClass = computed(() => (drag.value ? 'image-uploader' : ''))
 
@@ -99,7 +101,14 @@ export default defineComponent({
       const isLt2M = file.size / 1024 / 1024 < 2
       if (!isTypeValid) return ElMessage.error('图片格式只能是 JPG/PNG/GIF!')
       if (!isLt2M) return ElMessage.error('图片大小不能超过 2MB!')
-      photoList.value.push(file)
+      // 压缩处理
+      compressFile(file.raw, null, res => {
+        const newFile = new File(res, file.name, { type: file.raw.type })
+        file.blobUrl = res[0]
+        file.raw = Object.assign({}, newFile)
+        photoList.value.push(file)
+      })
+      // photoList.value.push(file)
     }
 
     // 传入 true 获取【已上传】文件，否则是获取【未上传】文件
@@ -122,8 +131,11 @@ export default defineComponent({
 
       // 有则开始手动上传
       const formData = new FormData()
+      // 压缩处理？
       toUploadList.forEach(file => {
-        formData.append('photoSrc', file.raw, file.name)
+        // 如果是 Blob
+        formData.append('photoSrc', file.blobUrl, file.name)
+        // formData.append('photoSrc', file.raw, file.name)
       })
       const { data } = await uploadMulti(formData)
       return filterPhotoList(true).concat(uploadMultiSuccess(data))

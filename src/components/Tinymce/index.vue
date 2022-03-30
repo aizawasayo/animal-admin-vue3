@@ -17,7 +17,7 @@
       initialValue="<p>Initial editor content</p>"
       v-model="contentValue"
       :init="initOptions"
-      tinymceScriptSrc="/tinymce/tinymce.min.js"
+      :tinymceScriptSrc="tinymceSrc"
     />
     <div class="editor-custom-btn-container">
       <editor-image
@@ -165,6 +165,11 @@ export default defineComponent({
           emit('update:modelValue', val)
         },
       }),
+      tinymceSrc: computed(() =>
+        import.meta.env.VITE_APP_CDN_API
+          ? import.meta.env.VITE_APP_CDN_API + 'tinymce/tinymce.min.js'
+          : '/tinymce/tinymce.min.js'
+      ),
     }
   },
 })

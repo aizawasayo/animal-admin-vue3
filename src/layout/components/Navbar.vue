@@ -53,6 +53,7 @@ import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
 import { CaretBottom } from '@element-plus/icons'
+import { ElMessage } from 'element-plus'
 
 export default {
   name: 'Navbar',

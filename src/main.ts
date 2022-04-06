@@ -1,5 +1,9 @@
 import { createApp } from 'vue'
+
+// 完整导入 element-plus 的方式
 // import './styles/element/index.scss'
+// import ElementPlus from 'element-plus'
+
 import '@/styles/index.scss'
 import router from './router'
 import store from './store'

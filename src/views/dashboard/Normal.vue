@@ -25,14 +25,8 @@
 
 <script lang="ts">
 import { computed, defineComponent } from 'vue'
-import PanThumb from '@components/PanThumb.vue'
-import GithubCorner from '@components/GithubCorner.vue'
 import { useStore } from 'vuex'
 export default defineComponent({
-  components: {
-    PanThumb,
-    GithubCorner,
-  },
   inject: ['realUrl'],
   setup() {
     const emptyGif =

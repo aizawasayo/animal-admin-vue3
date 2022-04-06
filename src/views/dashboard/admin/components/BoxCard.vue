@@ -31,15 +31,10 @@
 <script lang="ts">
 import { useStore } from 'vuex'
 import { computed, defineComponent } from 'vue'
-import PanThumb from '@components/PanThumb.vue'
-import Mallki from '@components/text-hover-effect/Mallki.vue'
+
 export default defineComponent({
   name: 'BoxCard',
   inject: ['realUrl'],
-  components: {
-    PanThumb,
-    Mallki,
-  },
   setup() {
     const store = useStore()
     const name = computed(() => {
@@ -119,9 +114,9 @@ export default defineComponent({
   }
 
   @media only screen and (max-width: 1510px) {
-    .mallki-text {
-      display: none;
-    }
+    // .mallki-text {
+    //   display: none;
+    // }
   }
 }
 </style>

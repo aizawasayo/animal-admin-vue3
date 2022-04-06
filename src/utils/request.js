@@ -46,7 +46,7 @@ service.interceptors.response.use(
       // 服务端自定义错误信息字段为 message
       // ElMessage({ message: res.message || 'Error', type: 'error', duration: 5 * 1000 })
       // 508: Illegal token; 512: Other clients logged in; 514: Token expired;
-      if ([508, 512, 514, 401, 403].includes(statusCode)) {
+      if ([508, 512, 401, 403].includes(statusCode)) {
         // to re-login
         ElMessageBox.confirm(
           '你已经登出了账户, 你可以关闭这个页面，或者重新登录',
@@ -69,6 +69,19 @@ service.interceptors.response.use(
   },
   error => {
     console.log('请求/响应失败：' + error) // for debug
+    if (error.response) {
+      // 请求已发出，但服务器响应的状态码不在 2xx 范围
+      console.log(error.response.data)
+      console.log(error.response.status)
+      console.log(error.response.headers)
+    } else if (error.request) {
+      // 请求已发出但未收到响应. `error.request` 是浏览器中 XMLHttpRequest 的一个实例
+      console.log(error.request)
+    } else {
+      // 在设置触发错误的请求时发生了一些事情
+      console.log('Error', error.message)
+    }
+    console.log(error.config)
     return Promise.reject(error)
   }
 )

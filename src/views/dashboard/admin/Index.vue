@@ -13,29 +13,29 @@
       <line-chart :chart-data="lineChartData" />
     </el-row>
 
-    <el-row :gutter="32">
-      <el-col :xs="24" :sm="24" :lg="8">
+    <el-row :gutter="15">
+      <el-col :xs="24" :sm="8" :lg="8">
         <div class="chart-wrapper">
           <radar-chart />
         </div>
       </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
+      <el-col :xs="24" :sm="8" :lg="8">
         <div class="chart-wrapper">
           <pie-chart />
         </div>
       </el-col>
-      <el-col :xs="24" :sm="24" :lg="8">
+      <el-col :xs="24" :sm="8" :lg="8">
         <div class="chart-wrapper">
           <bar-chart />
         </div>
       </el-col>
     </el-row>
 
-    <el-row :gutter="8">
+    <el-row :gutter="10">
       <el-col
         :xs="{ span: 24 }"
         :sm="{ span: 24 }"
-        :md="{ span: 24 }"
+        :md="{ span: 16 }"
         :lg="{ span: 16 }"
         :xl="{ span: 16 }"
         style="padding-right: 8px; margin-bottom: 30px"
@@ -45,7 +45,7 @@
       <el-col
         :xs="{ span: 24 }"
         :sm="{ span: 24 }"
-        :md="{ span: 24 }"
+        :md="{ span: 8 }"
         :lg="{ span: 8 }"
         :xl="{ span: 8 }"
         style="padding-right: 8px; margin-bottom: 30px"
@@ -82,7 +82,6 @@
 <script lang="ts">
 import { ref } from 'vue'
 import { ElRow, ElCol } from 'element-plus'
-import GithubCorner from '@components/GithubCorner.vue'
 import PanelGroup from './components/PanelGroup.vue'
 import LineChart from './components/LineChart.vue'
 import RadarChart from './components/RadarChart.vue'
@@ -99,7 +98,6 @@ export default {
   components: {
     ElRow,
     ElCol,
-    GithubCorner,
     PanelGroup,
     LineChart,
     RadarChart,

@@ -29,7 +29,8 @@ export default defineComponent({
 
 .link--mallki {
   font-weight: 800;
-  color: #4dd9d5;
+  // color: #4dd9d5;
+  color: $green;
   font-family: 'Dosis', sans-serif;
   -webkit-transition: color 0.5s 0.25s;
   transition: color 0.5s 0.25s;
@@ -56,7 +57,7 @@ export default defineComponent({
     width: 100%;
     height: 6px;
     margin: -3px 0 0 0;
-    background: #3888fa;
+    background: $purple;
     position: absolute;
     left: 0;
     top: 50%;
@@ -82,7 +83,7 @@ export default defineComponent({
       position: absolute;
       left: 0;
       width: 100%;
-      color: #3888fa;
+      color: $purple;
       -webkit-transition: -webkit-transform 0.5s;
       transition: transform 0.5s;
     }

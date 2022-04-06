@@ -49,19 +49,6 @@
 </template>
 
 <script>
-import Breadcrumb from '@components/Breadcrumb.vue'
-import Hamburger from '@components/Hamburger.vue'
-import Screenfull from '@components/Screenfull.vue'
-import SizeSelect from '@components/SizeSelect.vue'
-import {
-  ElMessage,
-  ElDropdown,
-  ElDropdownItem,
-  ElDropdownMenu,
-  ElIcon,
-  ElDivider,
-  ElTooltip,
-} from 'element-plus'
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
@@ -70,16 +57,6 @@ import { CaretBottom } from '@element-plus/icons'
 export default {
   name: 'Navbar',
   components: {
-    ElDropdown,
-    ElDropdownItem,
-    ElDropdownMenu,
-    ElIcon,
-    ElDivider,
-    ElTooltip,
-    Breadcrumb,
-    Hamburger,
-    Screenfull,
-    SizeSelect,
     CaretBottom,
   },
   inject: ['realUrl'],

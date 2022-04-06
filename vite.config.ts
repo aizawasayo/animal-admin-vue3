@@ -2,9 +2,11 @@ import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import { resolve } from 'path'
 import { defineConfig, loadEnv } from 'vite'
+
+// vue 按需自动导入组件插件，直接使用即可，公共组件无需再手动 import
 import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
-import ElementPlus from 'unplugin-element-plus/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers' // ElementPlus 组件专用的内置解析器
+import ElementPlus from 'unplugin-element-plus/vite' // 按需导入 element-plus 样式插件
 
 import { viteMockServe } from 'vite-plugin-mock'
 import viteSvgIcons from 'vite-plugin-svg-icons'
@@ -41,7 +43,13 @@ export default ({ mode }) => ({
     vueJsx(),
     viteMockServe({ supportTs: false }),
     Components({
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver()], // 配置启用 ElementPlus 专用的 UI 组件解析器
+      exclude: [
+        /[\\/]node_modules[\\/]/,
+        /[\\/]\.git[\\/]/,
+        /[\\/]\.nuxt[\\/]/,
+        /[\\/]SvgIcon\.vue[\\/]/,
+      ],
     }),
     ElementPlus({ useSource: true }),
     viteSvgIcons({
@@ -59,6 +67,7 @@ export default ({ mode }) => ({
   css: {
     preprocessorOptions: {
       scss: {
+        // 自定义 element 主题样式
         //additionalData: `@use "./src/styles/variables.module.scss";`,
         additionalData: `@use "@styles/element/index.scss" as *;`,
       },

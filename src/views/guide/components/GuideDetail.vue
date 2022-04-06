@@ -165,10 +165,10 @@ import {
 } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter, useRoute } from 'vue-router'
-import Tinymce from '@components/Tinymce/index.vue'
-import ImageUpload from '@components/ImageUpload.vue'
-import MDinput from '@components/MDinput.vue'
-import Sticky from '@components/Sticky.vue'
+// import Tinymce from '@components/Tinymce/index.vue'
+// import ImageUpload from '@components/ImageUpload.vue'
+// import MDinput from '@components/MDinput.vue'
+// import Sticky from '@components/Sticky.vue'
 import usePostForm from '@composables/usePostForm'
 import useLoading from '@composables/useLoading'
 import { getGuide, addGuide } from '@api/guide'
@@ -184,10 +184,10 @@ import { ElMessage } from 'element-plus'
 export default defineComponent({
   name: 'GuideDetail',
   components: {
-    Tinymce,
-    MDinput,
-    ImageUpload,
-    Sticky,
+    // Tinymce,
+    // MDinput,
+    // ImageUpload,
+    // Sticky,
     CommentDropdown,
     PlatformDropdown,
     SourceUrlDropdown,

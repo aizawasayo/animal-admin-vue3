@@ -20,11 +20,8 @@ router.beforeEach(async (to, from, next) => {
   // set page title
   document.title = getPageTitle(to.meta.title)
 
-  // determine whether the user has logged in
-  const hasToken = getToken()
-
-  // 判断是否存在 token,没有就重新登陆
-  if (hasToken) {
+  // 判断本地是否存在 token,没有就重新登陆
+  if (getToken()) {
     if (to.path === '/login') {
       // if is logged in, redirect to the home page
       next({ path: '/' })
@@ -36,7 +33,7 @@ router.beforeEach(async (to, from, next) => {
         next()
       } else {
         try {
-          // get user info
+          // 这个请求 api 需要登录权限，顺便可以检测 token 是否在有效期
           // note: roles must be a object array! such as: ['admin'] or ,['developer','editor']
           const { roles } = await store.dispatch('user/getInfo')
 
@@ -67,7 +64,7 @@ router.beforeEach(async (to, from, next) => {
           // hack method to ensure that addRoutes is complete
           // set the replace: true, so the navigation will not leave a history record
         } catch (error) {
-          console.warn(error)
+          console.log(error)
           // remove token and go to login page to re-login
           await store.dispatch('user/resetToken')
           ElMessage.error('登录已过期，请重新登录！')

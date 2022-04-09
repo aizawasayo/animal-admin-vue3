@@ -102,9 +102,9 @@ export default defineComponent({
       if (!isTypeValid) return ElMessage.error('图片格式只能是 JPG/PNG/GIF!')
       if (!isLt2M) return ElMessage.error('图片大小不能超过 2MB!')
       // 压缩处理
-      compressFile(file.raw, null, res => {
-        const newFile = new File(res, file.name, { type: file.raw.type })
-        file.blobUrl = res[0]
+      compressFile(file.raw).then(res => {
+        const newFile = new File([res], file.name, { type: file.raw.type })
+        file.blobUrl = res
         file.raw = Object.assign({}, newFile)
         photoList.value.push(file)
       })
@@ -131,7 +131,12 @@ export default defineComponent({
 
       // 有则开始手动上传
       const formData = new FormData()
-      // 压缩处理？
+      // 压缩处理也可以放这里
+      // for (let file of toUploadList) {
+      //   const res = await compressFile(file)
+      //    ...
+      //   formData.append('photoSrc', file.blobUrl, file.name)
+      // }
       toUploadList.forEach(file => {
         // 如果是 Blob
         formData.append('photoSrc', file.blobUrl, file.name)

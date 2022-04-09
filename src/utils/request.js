@@ -50,7 +50,7 @@ service.interceptors.response.use(
     console.log('请求/响应失败：' + error) // for debug
     if (error.response) {
       // 请求已发出，但服务器响应的状态码不在 2xx 范围
-      console.log(error.response.data)
+      // console.log(error.response.data)
       // console.log(error.response.status)
       // console.log(error.response.headers)
       if ([401, 403].includes(error.response.status)) {

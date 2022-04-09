@@ -126,16 +126,7 @@ export function compressFile(file, option, callback) {
   const reader = new FileReader()
   const image = new Image()
 
-  if (Array.isArray(file)) {
-    // 如果提交表单的时候触发，那么传递的 files 是数组
-    file.forEach(f => {
-      reader.readAsDataURL(f)
-    })
-  } else {
-    // 如果是添加图片的时候触发，那么就是单个图片文件
-    // 异步读取传入的 Blob 或 File 对象，【读取成功】会触发 reader 的 load 事件
-    reader.readAsDataURL(file)
-  }
+  reader.readAsDataURL(file)
 
   // 读取到图片数据保存在 event.target 的 result属性中
   reader.onload = function (event) {
@@ -143,7 +134,7 @@ export function compressFile(file, option, callback) {
     image.src = event.target.result
   }
 
-  const imgPromise = new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     image.onload = () => {
       resolve(compress(image, option))
     }

@@ -445,7 +445,7 @@ export default defineComponent({
 
     const getOptions = () => {
       getOption('fishLocale', list => {
-        localeList.val = list
+        localeList.value = list
       })
       getOption('shadow', list => {
         shadowList.value = list

@@ -47,7 +47,7 @@ service.interceptors.response.use(
     return res
   },
   error => {
-    console.log('请求/响应失败：' + error) // for debug
+    console.log('请求/响应失败：' + JSON.stringify(error.response.data)) // for debug
     if (error.response) {
       // 请求已发出，但服务器响应的状态码不在 2xx 范围
       // console.log(error.response.data)
@@ -69,8 +69,8 @@ service.interceptors.response.use(
       // 在设置触发错误的请求时发生了一些事情
       console.log('Error', error.message)
     }
-    console.log(error.config)
-    return Promise.reject(error)
+    // console.log(error.config)
+    return Promise.reject(error.response.data)
   }
 )
 

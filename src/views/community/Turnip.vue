@@ -256,7 +256,7 @@
 import { defineComponent, ref, reactive, onMounted, computed } from 'vue'
 import { useStore } from 'vuex'
 import { getTurnipList, addTurnip, getTurnip, deleteTurnip } from '@api/turnip'
-import { timestamp, parseTime } from '@utils'
+import { timestamp, parseTime, standardTime } from '@utils'
 import useMix from '@composables/useMix'
 import useDisabledTime from './composables/useDisabledTime'
 

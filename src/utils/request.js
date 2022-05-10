@@ -47,12 +47,12 @@ service.interceptors.response.use(
     return res
   },
   error => {
-    console.log('请求/响应失败：' + JSON.stringify(error.response.data)) // for debug
+    console.log('请求/响应失败：' + error) // for debug
     if (error.response) {
       // 请求已发出，但服务器响应的状态码不在 2xx 范围
-      // console.log(error.response.data)
-      // console.log(error.response.status)
-      // console.log(error.response.headers)
+      console.log('error.response.data', error.response.data)
+      // console.log('error.response.status', error.response.status)
+      // console.log('error.response.headers', error.response.headers)
       if ([401, 403].includes(error.response.status)) {
         // token 已过期，删除本地 token
         ElMessage({
@@ -64,12 +64,12 @@ service.interceptors.response.use(
       }
     } else if (error.request) {
       // 请求已发出但未收到响应. `error.request` 是浏览器中 XMLHttpRequest 的一个实例
-      console.log(error.request)
+      console.log('error.request', error.request)
     } else {
       // 在设置触发错误的请求时发生了一些事情
-      console.log('Error', error.message)
+      console.log('error.message', error.message)
     }
-    // console.log(error.config)
+    // console.log('error.config', error.config)
     return Promise.reject(error.response.data)
   }
 )

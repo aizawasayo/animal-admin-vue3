@@ -170,6 +170,7 @@ export default defineComponent({
           ? import.meta.env.VITE_APP_CDN_API + 'tinymce/tinymce.min.js'
           : '/tinymce/tinymce.min.js'
       ),
+      // tinymceSrc: computed(() => '/tinymce/tinymce.min.js'),
     }
   },
 })

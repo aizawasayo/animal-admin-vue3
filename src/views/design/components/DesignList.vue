@@ -75,7 +75,15 @@
 </template>
 
 <script>
-import { computed, defineComponent, watch, toRefs, reactive, ref } from 'vue'
+import {
+  ref,
+  toRefs,
+  reactive,
+  computed,
+  watch,
+  defineComponent,
+  onMounted,
+} from 'vue'
 import { useStore } from 'vuex'
 import useDelete from '@composables/useDelete'
 import useFilter from '@composables/useFilter'
@@ -118,11 +126,6 @@ export default defineComponent({
 
     watch(queryKey, val => (listQuery.query = val))
 
-    watch(roles, val => {
-      if (roles.value.length === 1 && roles.value.includes('normal'))
-        listQuery.user = userId.value
-    })
-
     const { list, total, listLoading, refreshList } = useList(
       listQuery,
       getDesignList
@@ -136,6 +139,12 @@ export default defineComponent({
       deleteDesign,
       refreshList
     )
+
+    onMounted(() => {
+      if (roles.value.length === 1 && roles.value.includes('normal')) {
+        listQuery.user = userId
+      }
+    })
 
     return {
       list,

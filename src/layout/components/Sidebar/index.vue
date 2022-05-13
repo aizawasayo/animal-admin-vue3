@@ -37,7 +37,7 @@ export default defineComponent({
     const route = useRoute()
     const router = useRouter()
     // const isCollapse = ref(true);
-    //const routes = computed(() => router.options.routes)
+
     return {
       isCollapse: computed(() => !store.getters.sidebar.opened),
       showLogo: computed(() => store.state.settings.sidebarLogo),

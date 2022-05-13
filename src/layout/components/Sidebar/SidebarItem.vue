@@ -1,7 +1,7 @@
 <template>
-  <div v-if="!item.meta || !item.meta.hidden">
+  <div v-if="!(item.meta && item.meta.hidden)">
     <template
-      v-if="!alwaysShowRootMenu && theOnlyOneChild && !theOnlyOneChild.children"
+      v-if="theOnlyOneChild && !theOnlyOneChild.children && !alwaysShowRootMenu"
     >
       <app-link
         v-if="theOnlyOneChild.meta"
@@ -42,7 +42,7 @@
 
 <script lang="ts">
 import path from 'path-browserify'
-import { computed, defineComponent, PropType } from 'vue'
+import { defineComponent, computed, PropType, toRefs } from 'vue'
 import { RouteRecordRaw } from 'vue-router'
 import { isExternal } from '@utils/validate'
 import AppLink from './Link.vue'
@@ -70,23 +70,16 @@ export default defineComponent({
   },
   components: { Item, AppLink, ElMenuItem, ElSubMenu },
   setup(props) {
-    const alwaysShowRootMenu = computed(() => {
-      if (props.item.meta && props.item.meta.alwaysShow) {
-        return true
-      } else {
-        return false
-      }
-    })
+    const { item } = toRefs(props)
 
+    const alwaysShowRootMenu = computed(
+      () => item.value.meta && item.value.meta.alwaysShow
+    )
     const showingChildNumber = computed(() => {
-      if (props.item.children) {
-        const showingChildren = props.item.children.filter(item => {
-          if (item.meta && item.meta.hidden) {
-            return false
-          } else {
-            return true
-          }
-        })
+      if (item.value.children) {
+        const showingChildren = item.value.children.filter(
+          child => !(child.meta && child.meta.hidden)
+        )
         return showingChildren.length
       }
       return 0
@@ -98,7 +91,7 @@ export default defineComponent({
       }
       if (props.item.children) {
         for (const child of props.item.children) {
-          if (!child.meta || !child.meta.hidden) {
+          if (!(child.meta && child.meta.hidden)) {
             return child
           }
         }

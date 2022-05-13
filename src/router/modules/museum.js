@@ -20,7 +20,6 @@ const museumRouter = {
       meta: {
         title: '鱼类',
         icon: 'fish',
-        roles: ['admin'],
       },
     },
     {
@@ -30,7 +29,6 @@ const museumRouter = {
       meta: {
         title: '昆虫',
         icon: 'bug',
-        roles: ['admin'],
       },
     },
     {
@@ -40,7 +38,6 @@ const museumRouter = {
       meta: {
         title: '化石',
         icon: 'dragon',
-        roles: ['admin'],
       },
     },
     {
@@ -50,7 +47,6 @@ const museumRouter = {
       meta: {
         title: '艺术品',
         icon: 'art',
-        roles: ['admin'],
       },
     },
     {
@@ -60,7 +56,6 @@ const museumRouter = {
       meta: {
         title: '海洋生物',
         icon: 'sea',
-        roles: ['admin'],
       },
     },
   ],

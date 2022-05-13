@@ -20,7 +20,6 @@ const optionRouter = {
       meta: {
         title: '通用配置',
         icon: 'table',
-        roles: ['admin'],
       },
     },
     {
@@ -30,7 +29,6 @@ const optionRouter = {
       meta: {
         title: '岛民配置',
         icon: 'people',
-        roles: ['admin'],
       },
     },
     {
@@ -40,7 +38,6 @@ const optionRouter = {
       meta: {
         title: '家具配置',
         icon: 'furniture',
-        roles: ['admin'],
       },
     },
     {
@@ -50,7 +47,6 @@ const optionRouter = {
       meta: {
         title: '服饰配置',
         icon: 'theme',
-        roles: ['admin'],
       },
     },
     {
@@ -60,7 +56,6 @@ const optionRouter = {
       meta: {
         title: '鱼类配置',
         icon: 'fish',
-        roles: ['admin'],
       },
     },
     {
@@ -70,7 +65,6 @@ const optionRouter = {
       meta: {
         title: '昆虫配置',
         icon: 'bug',
-        roles: ['admin'],
       },
     },
     {
@@ -80,7 +74,6 @@ const optionRouter = {
       meta: {
         title: '海洋生物配置',
         icon: 'sea',
-        roles: ['admin'],
       },
     },
     {
@@ -90,7 +83,6 @@ const optionRouter = {
       meta: {
         title: '工具配置',
         icon: 'tool',
-        roles: ['admin'],
       },
     },
     {
@@ -100,7 +92,6 @@ const optionRouter = {
       meta: {
         title: 'DIY配置',
         icon: 'book',
-        roles: ['admin'],
       },
     },
   ],

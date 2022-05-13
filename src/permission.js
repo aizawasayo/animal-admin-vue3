@@ -5,7 +5,6 @@ import getPageTitle from '@utils/get-page-title'
 import { ElMessage } from 'element-plus'
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
-import {} from 'vue'
 
 NProgress.configure({
   showSpinner: false,
@@ -46,7 +45,8 @@ router.beforeEach(async (to, from, next) => {
           // console.log(accessRoutes)
 
           // 更新加载路由
-          // router.options.routes = store.getters.permission_routes
+          router.options.routes = store.getters.permission_routes
+
           // dynamically add accessible routes
           // addRoutes(accessRoutes)
           accessRoutes.forEach(route => {

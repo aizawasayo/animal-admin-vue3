@@ -9,17 +9,11 @@ import museumRouter from './modules/museum'
 import optionRouter from './modules/option'
 
 /**
-// 当设置 true 的时候该路由不会在侧边栏出现 如401，login等页面，或者如一些编辑页面/edit/1
-hidden: true // (默认 false)
-
 //当设置 noRedirect 的时候该路由在面包屑导航中不可被点击
 redirect: 'noRedirect'
 
-// 当你一个路由下面的 children 声明的路由大于1个时，自动会变成嵌套的模式--如组件页面
-// 只有一个时，会将那个子路由当做根路由显示在侧边栏--如引导页面
-// 若你想不管路由下面的 children 声明的个数都显示你的根路由
-// 你可以设置 alwaysShow: true，这样它就会忽略之前定义的规则，一直显示根路由
-alwaysShow: true
+
+
 
 name: 'router-name' // 设定路由的名字，一定要填写不然使用<keep-alive>时会出现各种问题
 meta: {
@@ -29,7 +23,10 @@ meta: {
   noCache: true // 如果设置为true，则不会被 <keep-alive> 缓存(默认 false)
   breadcrumb: false //  如果设置为false，则不会在breadcrumb面包屑中显示(默认 true)
   affix: true // 若果设置为true，它则会固定在tags-view中(默认 false)
-
+  hidden: true // (默认 false) // 当设置 true 的时候该路由不会在侧边栏出现 如 404，login等页面，或者如一些编辑页面/edit/1
+ 
+  // SidebarItem 组件的默认逻辑为，当一个路由下面的 children 路由大于 >1 时，会自动变成嵌套的模式。如果子路由正好一个就会默认将子路由作为根路由显示在侧边栏中，若不想这样，可以通过设置在根路由中设置 alwaysShow: true来取消这一特性
+  alwaysShow: true // 你可以设置 alwaysShow: true，这样它就会忽略之前定义的规则，一直显示根路由
   // 当路由设置了该属性，则会高亮相对应的侧边栏。
   // 这在某些场景非常有用，比如：一个文章的列表页路由为：/article/list
   // 点击文章进入文章详情页，这时候路由为/article/1，但你想在侧边栏高亮文章列表的路由，就可以进行如下设置
@@ -113,6 +110,7 @@ export const asyncRoutes = [
     component: Layout,
     redirect: '/user/index',
     name: 'User',
+    meta: { roles: ['admin'] },
     children: [
       {
         path: 'index',
@@ -121,7 +119,6 @@ export const asyncRoutes = [
         meta: {
           title: '用户管理',
           icon: 'user',
-          roles: ['admin'],
         },
       },
     ],
@@ -131,6 +128,7 @@ export const asyncRoutes = [
     component: Layout,
     redirect: '/islander/index',
     name: 'Islander',
+    meta: { roles: ['admin'] },
     children: [
       {
         path: 'index',
@@ -139,7 +137,6 @@ export const asyncRoutes = [
         meta: {
           title: '岛民',
           icon: 'people',
-          roles: ['admin'],
         },
       },
     ],
@@ -152,6 +149,7 @@ export const asyncRoutes = [
     component: Layout,
     redirect: '/banner/index',
     name: 'Banner',
+    meta: { roles: ['admin'] },
     children: [
       {
         path: 'index',
@@ -160,7 +158,6 @@ export const asyncRoutes = [
         meta: {
           title: '焦点图',
           icon: 'banner',
-          roles: ['admin'],
         },
       },
     ],
@@ -170,6 +167,7 @@ export const asyncRoutes = [
     component: Layout,
     redirect: '/comment/index',
     name: 'Comment',
+    meta: { roles: ['admin'] },
     children: [
       {
         path: 'index',
@@ -178,7 +176,6 @@ export const asyncRoutes = [
         meta: {
           title: '评论管理',
           icon: 'message',
-          roles: ['admin'],
         },
       },
     ],

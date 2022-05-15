@@ -257,6 +257,7 @@ export default defineComponent({
       contactDetail: '',
       detail: '',
       psw: '',
+      comments: [],
     })
 
     const apiOption = {

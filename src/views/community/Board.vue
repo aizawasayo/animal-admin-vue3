@@ -159,6 +159,7 @@ import { getBoardList, addBoard, getBoard, deleteBoard } from '@api/board'
 import { getOptionList } from '@api/option'
 import getOption from '@utils/get-option'
 import useMix from '@composables/useMix'
+import { ElMessage } from 'element-plus'
 
 export default defineComponent({
   name: 'Board',
@@ -174,6 +175,8 @@ export default defineComponent({
       photoSrc: [],
       icon: '',
       color: '',
+      comments: [],
+      likes: [],
     })
 
     const apiOption = {
@@ -202,7 +205,7 @@ export default defineComponent({
         .then(response => {
           topicOption.value = response.data
         })
-        .catch(err => $message.error(err.message))
+        .catch(err => ElMessage.error(err.message))
     }
 
     const userId = computed(() => store.getters.userId)

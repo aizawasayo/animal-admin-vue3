@@ -10,12 +10,18 @@ export default function useEdit(formRef, formData) {
     // 处理一些额外需要清除的字段
     const resetKeys = ['email', 'password']
     const deleteKeys = ['_id', '__v', 'psw']
+    const arrayKeys = ['comments', 'likes']
+
     resetKeys.forEach(key => {
       if (formData[key]) formData[key] = ''
     })
     deleteKeys.forEach(key => {
       if (formData[key]) delete formData[key]
     })
+    arrayKeys.forEach(key => {
+      if (formData[key]) formData[key] = []
+    })
+
     formData['__v'] = undefined
   }
   // 打开弹窗并初始化数据

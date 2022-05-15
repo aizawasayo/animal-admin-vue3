@@ -271,7 +271,6 @@ export default defineComponent({
             nextTick(() => {})
           },
           (err: any) => {
-            console.log(err)
             postLoading.value = false
           },
           (formData: Object) => {

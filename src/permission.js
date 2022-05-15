@@ -64,7 +64,7 @@ router.beforeEach(async (to, from, next) => {
           // hack method to ensure that addRoutes is complete
           // set the replace: true, so the navigation will not leave a history record
         } catch (error) {
-          console.log(error)
+          // console.log(error)
           // remove token and go to login page to re-login
           await store.dispatch('user/resetToken')
           ElMessage.error('登录已过期，请重新登录！')

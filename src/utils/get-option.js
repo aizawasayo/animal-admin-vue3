@@ -12,6 +12,6 @@ export default function getOption(type, callback) {
       callback(optionList)
     })
     .catch(err => {
-      console.log(err)
+      // console.log(err)
     })
 }

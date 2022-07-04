@@ -216,6 +216,7 @@ export default defineComponent({
       platforms: [],
       comment_disabled: false,
       author: '',
+      comments: [],
     })
 
     const displayTime = ref('')

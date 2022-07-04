@@ -343,9 +343,9 @@ export default defineComponent({
         username: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
           {
-            min: 2,
+            min: 6,
             max: 12,
-            message: '长度在 2 到 12 个字符',
+            message: '长度在 6 到 12 个字符',
             trigger: 'blur',
           },
         ],

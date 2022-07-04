@@ -1,6 +1,6 @@
 import { ElMessage } from 'element-plus'
 
-export default function usePostFrom(formRef, formData, isUserPage, uploadRef) {
+export default function usePostForm(formRef, formData, isUserPage, uploadRef) {
   // 表单提交
   const postForm = (postApi, success, fail, dataProcess) => {
     formRef.value.validate(valid => {

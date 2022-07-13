@@ -87,7 +87,7 @@ export default defineComponent({
   margin-left: 8px;
 
   .no-redirect {
-    color: $lightGrey;
+    color: $panGrey;
     cursor: text;
   }
 }

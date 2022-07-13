@@ -53,7 +53,22 @@ export const constantRoutes = [
     component: () => import('@views/login/index.vue'),
     meta: { hidden: true },
   },
-
+  {
+    path: '/password',
+    component: Layout,
+    redirect: '/password/index', // 重定向地址，在面包屑中点击会重定向去的地址
+    children: [
+      {
+        path: 'index',
+        component: () => import('@views/Password.vue'),
+        name: 'Password',
+        meta: {
+          title: '修改密码',
+        },
+      },
+    ],
+    meta: { hidden: true },
+  },
   {
     path: '/auth-redirect',
     component: () => import('@views/login/Auth-redirect.vue'),

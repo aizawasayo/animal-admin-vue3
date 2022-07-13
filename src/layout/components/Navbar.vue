@@ -38,6 +38,9 @@
             <router-link to="/">
               <el-dropdown-item> 主页 </el-dropdown-item>
             </router-link>
+            <router-link to="/password">
+              <el-dropdown-item> 修改密码 </el-dropdown-item>
+            </router-link>
             <el-dropdown-item divided @click.native="logout">
               <span style="display: block">登出</span>
             </el-dropdown-item>

@@ -8,6 +8,10 @@ export function logout() {
   return request({ url: '/admin/logout', method: 'post' })
 }
 
+export function sendMessage(data) {
+  return request({ url: '/admin/message', method: 'post', data })
+}
+
 export function getUsers(params) {
   return request({ url: 'admin/user', method: 'get', params })
 }
@@ -33,5 +37,21 @@ export function searchUser(username) {
     url: 'admin/user/search',
     method: 'get',
     params: { username },
+  })
+}
+
+export function modifyPsw(id, data) {
+  return request({
+    url: 'admin/user/psw/' + id,
+    method: 'put',
+    data,
+  })
+}
+
+export function register(data) {
+  return request({
+    url: 'admin/user/regsiter',
+    method: 'post',
+    data,
   })
 }
